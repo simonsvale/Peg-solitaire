@@ -39,10 +39,12 @@ int main(int argc, char **argv)
 
     
     // Load textures
-    SDL_Surface *image = IMG_Load("textures/dummy.png");
+    SDL_Surface *image = IMG_Load("textures/pegboard.png");
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image);
 
-    SDL_Rect dstrect = {100, 100, 312, 312};
+
+    // Should be get screen size divided by something. !!!
+    SDL_Rect dstrect = {-100, 150, 412, 562};
 
     SDL_Event windowEvent;
 
@@ -105,7 +107,8 @@ int main(int argc, char **argv)
         SDL_SetRenderDrawColor(renderer, 255, 255, 100, 255);
 
         SDL_RenderDrawLine(renderer, x_direction, y_direction, 300, 400);
-        
+
+        // Draw textures
         SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 
         SDL_RenderPresent(renderer);
@@ -113,6 +116,7 @@ int main(int argc, char **argv)
 
     SDL_DestroyTexture(texture);
     SDL_FreeSurface(image);
+    
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
