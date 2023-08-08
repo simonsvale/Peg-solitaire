@@ -1,5 +1,5 @@
 // Compilation settings
-// g++ -I src/include -L src/lib -o main main.cpp -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
+// g++ -I src/include -L src/lib -o main main.cpp -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -mwindows -mconsole
 
 #include <iostream>
 #include <cmath>
@@ -28,6 +28,7 @@ void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
     for(int SurfaceNumber = 0; SurfaceNumber < (*(&SurfaceArr + 1) - SurfaceArr); SurfaceNumber++)
     {
         SDL_FreeSurface(SurfaceArr[SurfaceNumber]);
+        std::cout << SurfaceArr[SurfaceNumber] << std::endl;
     }
 }
 
@@ -160,10 +161,11 @@ int main(int argc, char **argv)
 
         SDL_RenderDrawLine(renderer, x_direction, y_direction, 300, 400);
 
-        // Draw textures
-        SDL_RenderCopy(renderer, TextureArray[0], NULL, &PegBoardRect);
-        SDL_RenderCopy(renderer, TextureArray[1], NULL, &PegBoardRect);
-        SDL_RenderCopy(renderer, TextureArray[2], NULL, &PegBoardRect);
+        // Draw all loaded textures (Overlays depends on the order of paths of the images)
+        for(int TextureNumber = 0; TextureNumber < (*(&TextureArray + 1) - TextureArray); TextureNumber++)
+        {
+            SDL_RenderCopy(renderer, TextureArray[TextureNumber], NULL, &PegBoardRect);
+        }
 
         SDL_RenderPresent(renderer);
     }
