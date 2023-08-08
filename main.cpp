@@ -8,9 +8,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-// Window width and height
-const int WIDTH = 800, HEIGHT = 600;
-
 int y_direction = 100;
 
 int x_direction = 100;
@@ -27,6 +24,16 @@ int main(int argc, char **argv)
     // initialize SDL window and renderer
     SDL_Init(SDL_INIT_EVERYTHING);
 
+
+    SDL_DisplayMode DisplaySize;
+
+    // Throws an error in the VS IDE, but somehow it still works...
+    SDL_GetCurrentDisplayMode(0, &DisplaySize);
+
+    // Use the width and height of the screen to make the window compatible with all screen resolutions.
+    int WIDTH = DisplaySize.w/2;
+    int HEIGHT = DisplaySize.h/1.4;
+
     SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI, &window, &renderer);
     SDL_SetWindowTitle(window, "Game window");
     SDL_RenderSetScale(renderer, 1, 1);
@@ -39,12 +46,13 @@ int main(int argc, char **argv)
 
     
     // Load textures
-    SDL_Surface *image = IMG_Load("textures/pegboard.png");
+    SDL_Surface *image = IMG_Load("textures/PegBoard.png");
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image);
 
+    // To make sure the pegboard does not get squished and retains the correct size with reuse the width of the screen.
+    int SQUARE_WIDTH = WIDTH;
 
-    // Should be get screen size divided by something. !!!
-    SDL_Rect dstrect = {-100, 150, 412, 562};
+    SDL_Rect PegBoardRect = {0, -SQUARE_WIDTH/16, SQUARE_WIDTH, SQUARE_WIDTH-SQUARE_WIDTH/16};
 
     SDL_Event windowEvent;
 
@@ -109,7 +117,7 @@ int main(int argc, char **argv)
         SDL_RenderDrawLine(renderer, x_direction, y_direction, 300, 400);
 
         // Draw textures
-        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+        SDL_RenderCopy(renderer, texture, NULL, &PegBoardRect);
 
         SDL_RenderPresent(renderer);
     }
