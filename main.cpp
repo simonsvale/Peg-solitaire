@@ -8,15 +8,55 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+
+// TEST CODE REMOVE
 int y_direction = 100;
 
 int x_direction = 100;
 
 
+// Function for deleting SDL textures and freeing surfaces
+void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
+{
+    // Loop through all textures and delete them from memory.
+    for(int TextureNumber = 0; TextureNumber < (*(&TextureArr + 1) - TextureArr); TextureNumber++)
+    {
+        SDL_DestroyTexture(TextureArr[TextureNumber]);
+    }
+
+    // Loop through all surfaces and delete them from memory.
+    for(int SurfaceNumber = 0; SurfaceNumber < (*(&SurfaceArr + 1) - SurfaceArr); SurfaceNumber++)
+    {
+        SDL_FreeSurface(SurfaceArr[SurfaceNumber]);
+    }
+}
+
+
+SDL_Surface *LoadSurface(const char *ImagePath)
+{   
+    // Load image from given Path
+    SDL_Surface *LoadedImage = IMG_Load(ImagePath);
+    return LoadedImage;
+}
+
+
+SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
+{
+    SDL_Texture *SurfaceTexture = SDL_CreateTextureFromSurface(renderer, Surface);
+    return SurfaceTexture;
+}
+
+
 int main(int argc, char **argv) 
 {
-
     bool IsFullscreen = false;
+
+    const char *ImagePathArray[] = {"textures/PegBoard.png", "textures/Peg.png", "textures/dummy.png"};
+    int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
+
+    SDL_Surface *SurfaceArray[ImagePathArraySize];
+    SDL_Texture *TextureArray[ImagePathArraySize];
+
 
     SDL_Window *window;
     SDL_Renderer *renderer; 
@@ -24,10 +64,8 @@ int main(int argc, char **argv)
     // initialize SDL window and renderer
     SDL_Init(SDL_INIT_EVERYTHING);
 
-
-    SDL_DisplayMode DisplaySize;
-
     // Throws an error in the VS IDE, but somehow it still works...
+    SDL_DisplayMode DisplaySize;
     SDL_GetCurrentDisplayMode(0, &DisplaySize);
 
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
@@ -43,11 +81,17 @@ int main(int argc, char **argv)
         std::cout << "Could not create window" << SDL_GetError() << std::endl;
         return 1;
     }
-
     
-    // Load textures
-    SDL_Surface *image = IMG_Load("textures/PegBoard.png");
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image);
+    // Create surfaces and textures and store them in ararys
+    for(int ImagePathNumber = 0; ImagePathNumber < ImagePathArraySize; ImagePathNumber++)
+    {
+        SDL_Surface *Surface = LoadSurface(ImagePathArray[ImagePathNumber]);
+        SDL_Texture *Texture = LoadTexture(Surface, renderer);
+
+        // Store surfaces and textures in arrays to be able to delete them later
+        SurfaceArray[ImagePathNumber] = Surface;
+        TextureArray[ImagePathNumber] = Texture;
+    }
 
     // To make sure the pegboard does not get squished and retains the correct size with reuse the width of the screen.
     int SQUARE_WIDTH = WIDTH;
@@ -117,17 +161,20 @@ int main(int argc, char **argv)
         SDL_RenderDrawLine(renderer, x_direction, y_direction, 300, 400);
 
         // Draw textures
-        SDL_RenderCopy(renderer, texture, NULL, &PegBoardRect);
+        SDL_RenderCopy(renderer, TextureArray[0], NULL, &PegBoardRect);
+        SDL_RenderCopy(renderer, TextureArray[1], NULL, &PegBoardRect);
+        SDL_RenderCopy(renderer, TextureArray[2], NULL, &PegBoardRect);
 
         SDL_RenderPresent(renderer);
     }
 
-    SDL_DestroyTexture(texture);
-    SDL_FreeSurface(image);
-    
+    // Delete the Textures and Surfaces in their respective arrays
+    Delete(TextureArray, SurfaceArray);
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 
     return EXIT_SUCCESS;
 }
+
