@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 {
     bool IsFullscreen = false;
 
-    const char *ImagePathArray[] = {"textures/PegBoard.png", "textures/Peg.png", "textures/dummy.png"};
+    const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png"};
     int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 
     SDL_Surface *SurfaceArray[ImagePathArraySize];
