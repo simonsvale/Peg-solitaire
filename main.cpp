@@ -17,18 +17,14 @@ int x_direction = 100;
 
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
-{
-    // Loop through all textures and delete them from memory.
-    for(int TextureNumber = 0; TextureNumber < (*(&TextureArr + 1) - TextureArr); TextureNumber++)
+{   
+    // Loop through all textures and surfaces and delete them from memory.
+    for(int Number = 0; Number < (*(&TextureArr + 1) - TextureArr)-1;)
     {
-        SDL_DestroyTexture(TextureArr[TextureNumber]);
-    }
+        SDL_DestroyTexture(TextureArr[Number]);
+        SDL_FreeSurface(SurfaceArr[Number]);
 
-    // Loop through all surfaces and delete them from memory.
-    for(int SurfaceNumber = 0; SurfaceNumber < (*(&SurfaceArr + 1) - SurfaceArr); SurfaceNumber++)
-    {
-        SDL_FreeSurface(SurfaceArr[SurfaceNumber]);
-        std::cout << SurfaceArr[SurfaceNumber] << std::endl;
+        Number++;
     }
 }
 
@@ -84,7 +80,7 @@ int main(int argc, char **argv)
     }
     
     // Create surfaces and textures and store them in ararys
-    for(int ImagePathNumber = 0; ImagePathNumber < ImagePathArraySize; ImagePathNumber++)
+    for(int ImagePathNumber = 0; ImagePathNumber <= ImagePathArraySize-1;)
     {
         SDL_Surface *Surface = LoadSurface(ImagePathArray[ImagePathNumber]);
         SDL_Texture *Texture = LoadTexture(Surface, renderer);
@@ -92,6 +88,8 @@ int main(int argc, char **argv)
         // Store surfaces and textures in arrays to be able to delete them later
         SurfaceArray[ImagePathNumber] = Surface;
         TextureArray[ImagePathNumber] = Texture;
+
+        ImagePathNumber++;
     }
 
     // To make sure the pegboard does not get squished and retains the correct size with reuse the width of the screen.
@@ -161,12 +159,14 @@ int main(int argc, char **argv)
 
         SDL_RenderDrawLine(renderer, x_direction, y_direction, 300, 400);
 
-        // Draw all loaded textures (Overlays depends on the order of paths of the images)
-        for(int TextureNumber = 0; TextureNumber < (*(&TextureArray + 1) - TextureArray); TextureNumber++)
+        // Copy all loaded textures to the renderer (Overlays depends on the order of paths of the images)
+        for(int TextureNumber = 0; TextureNumber <= (*(&TextureArray + 1) - TextureArray)-1;)
         {
             SDL_RenderCopy(renderer, TextureArray[TextureNumber], NULL, &PegBoardRect);
+            TextureNumber++;
         }
 
+        // Renderer the loaded textures
         SDL_RenderPresent(renderer);
     }
 
