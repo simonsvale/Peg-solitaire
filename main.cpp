@@ -1,33 +1,86 @@
 // Compilation settings
-// g++ -I src/include -L src/lib -o main main.cpp -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
+// g++ -I src/include -L src/lib -o main main.cpp -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -mwindows -mconsole
 
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 // Include SDL2 headers
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-int y_direction = 100;
+using namespace std;
 
+const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png"};
+int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
+
+// TEST CODE REMOVE
+int y_direction = 100;
 int x_direction = 100;
+
+
+// Function for deleting SDL textures and freeing surfaces
+void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
+{      
+    // Loop through all textures and surfaces and delete them from memory.
+    for(int Number = 0; Number < ImagePathArraySize;)
+    {
+        SDL_DestroyTexture(TextureArr[Number]);
+        SDL_FreeSurface(SurfaceArr[Number]);
+
+        Number++;
+    }
+}
+
+
+SDL_Surface *LoadSurface(const char *ImagePath)
+{   
+    // Load image from given Path
+    SDL_Surface *LoadedImage = IMG_Load(ImagePath);
+    return LoadedImage;
+}
+
+
+SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
+{
+    SDL_Texture *SurfaceTexture = SDL_CreateTextureFromSurface(renderer, Surface);
+    return SurfaceTexture;
+}
+
+
+void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr)
+{   
+    // Copy all loaded textures to the renderer (Overlays depends on the order of paths of the images)
+    for(int TextureNumber = 0; TextureNumber < ImagePathArraySize;)
+    {      
+        SDL_Rect Rect[4] = {RectArr[TextureNumber].x, RectArr[TextureNumber].y, RectArr[TextureNumber].w, RectArr[TextureNumber].h};
+
+        // Iterate through the Textures and their corrosponding SDL_Rects, defining their size on the screen.
+        SDL_RenderCopy(renderer, TextureArr[TextureNumber], NULL, Rect);
+
+        TextureNumber++;
+    }
+    
+}
 
 
 int main(int argc, char **argv) 
 {
-
     bool IsFullscreen = false;
+
+    // For storing the actual images, that are used as textures.
+    SDL_Surface *SurfaceArray[ImagePathArraySize];
+    SDL_Texture *TextureArray[ImagePathArraySize];
 
     SDL_Window *window;
     SDL_Renderer *renderer; 
-    
+
+
     // initialize SDL window and renderer
     SDL_Init(SDL_INIT_EVERYTHING);
 
-
-    SDL_DisplayMode DisplaySize;
-
     // Throws an error in the VS IDE, but somehow it still works...
+    SDL_DisplayMode DisplaySize;
     SDL_GetCurrentDisplayMode(0, &DisplaySize);
 
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
@@ -43,16 +96,31 @@ int main(int argc, char **argv)
         std::cout << "Could not create window" << SDL_GetError() << std::endl;
         return 1;
     }
-
     
-    // Load textures
-    SDL_Surface *image = IMG_Load("textures/PegBoard.png");
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image);
+    // Create surfaces and textures and store them in ararys
+    for(int ImagePathNumber = 0; ImagePathNumber <= ImagePathArraySize-1;)
+    {
+        SDL_Surface *Surface = LoadSurface(ImagePathArray[ImagePathNumber]);
+        SDL_Texture *Texture = LoadTexture(Surface, renderer);
+
+        // Store surfaces and textures in arrays to be able to delete them later
+        SurfaceArray[ImagePathNumber] = Surface;
+        TextureArray[ImagePathNumber] = Texture;
+
+        ImagePathNumber++;
+    }
 
     // To make sure the pegboard does not get squished and retains the correct size with reuse the width of the screen.
     int SQUARE_WIDTH = WIDTH;
 
-    SDL_Rect PegBoardRect = {0, -SQUARE_WIDTH/16, SQUARE_WIDTH, SQUARE_WIDTH-SQUARE_WIDTH/16};
+
+    // Needs pointers because of the use of arrays in arrays 
+    SDL_Rect PegBoardRect = {0, -SQUARE_WIDTH/16, SQUARE_WIDTH, SQUARE_WIDTH-SQUARE_WIDTH/16}; 
+    SDL_Rect PegRect = {300, SQUARE_WIDTH/7, SQUARE_WIDTH/7, SQUARE_WIDTH/7};
+    SDL_Rect DummyRect = {90, 90, 90, 90};
+
+    vector<SDL_Rect> RectArray = {DummyRect, PegBoardRect, PegRect};
+
 
     SDL_Event windowEvent;
 
@@ -116,18 +184,20 @@ int main(int argc, char **argv)
 
         SDL_RenderDrawLine(renderer, x_direction, y_direction, 300, 400);
 
-        // Draw textures
-        SDL_RenderCopy(renderer, texture, NULL, &PegBoardRect);
+        // RectArray is a vector class instead of a double pointer.
+        RenderEverything(renderer, TextureArray, RectArray);
 
+        // Renderer the loaded textures
         SDL_RenderPresent(renderer);
     }
 
-    SDL_DestroyTexture(texture);
-    SDL_FreeSurface(image);
-    
+    // Delete the Textures and Surfaces in their respective arrays
+    Delete(TextureArray, SurfaceArray);
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 
     return EXIT_SUCCESS;
 }
+
