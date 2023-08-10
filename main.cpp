@@ -11,8 +11,14 @@
 
 using namespace std;
 
+/*
+    The ImagePathArray should not actually be Global, 
+    but it is easier this way since the 
+    ImagePathArraySize integer is needed in almost every function.
+*/ 
+
 const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png"};
-int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
+const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 
 // TEST CODE REMOVE
 int y_direction = 100;
@@ -115,8 +121,8 @@ int main(int argc, char **argv)
 
 
     // Needs pointers because of the use of arrays in arrays 
-    SDL_Rect PegBoardRect = {0, -SQUARE_WIDTH/16, SQUARE_WIDTH, SQUARE_WIDTH-SQUARE_WIDTH/16}; 
-    SDL_Rect PegRect = {300, SQUARE_WIDTH/7, SQUARE_WIDTH/7, SQUARE_WIDTH/7};
+    SDL_Rect PegBoardRect = {0, -80, SQUARE_WIDTH, SQUARE_WIDTH}; 
+    SDL_Rect PegRect = {303, 115, SQUARE_WIDTH/10, SQUARE_WIDTH/10};
     SDL_Rect DummyRect = {90, 90, 90, 90};
 
     vector<SDL_Rect> RectArray = {DummyRect, PegBoardRect, PegRect};
