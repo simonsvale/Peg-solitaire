@@ -11,8 +11,14 @@
 
 using namespace std;
 
+/*
+    The ImagePathArray should not actually be Global, 
+    but it is easier this way since the 
+    ImagePathArraySize integer is needed in almost every function.
+*/ 
+
 const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png"};
-int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
+const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 
 // TEST CODE REMOVE
 int y_direction = 100;
@@ -48,19 +54,38 @@ SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
 }
 
 
-void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr)
+void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr)
 {   
+    // Get size of RectArr, this is necessary since we need to render the peg image multiple times.
+    int RectArrSize = RectArr.size();
+
     // Copy all loaded textures to the renderer (Overlays depends on the order of paths of the images)
     for(int TextureNumber = 0; TextureNumber < ImagePathArraySize;)
     {      
-        SDL_Rect Rect[4] = {RectArr[TextureNumber].x, RectArr[TextureNumber].y, RectArr[TextureNumber].w, RectArr[TextureNumber].h};
+        if(TextureAmountArr[TextureNumber] > 1)
+        {   
+            for(int RenderAmount = 0; RenderAmount < TextureAmountArr[TextureNumber];)
+            {
+                int RectAmount = RenderAmount+TextureNumber;
+                
+                // Iterate through each rect in that "Block" of the same texture defined by the TextureAmountArray.
+                SDL_Rect Rect[4] = {RectArr[RectAmount].x, RectArr[RectAmount].y, RectArr[RectAmount].w, RectArr[RectAmount].h};
 
-        // Iterate through the Textures and their corrosponding SDL_Rects, defining their size on the screen.
-        SDL_RenderCopy(renderer, TextureArr[TextureNumber], NULL, Rect);
+                // Iterate through the Textures and their corrosponding SDL_Rects, defining their size on the screen.
+                SDL_RenderCopy(renderer, TextureArr[TextureNumber], NULL, Rect);
+
+                RenderAmount++;
+            }
+        }
+        else
+        {   
+            // Else just render the one texture
+            SDL_Rect Rect[4] = {RectArr[TextureNumber].x, RectArr[TextureNumber].y, RectArr[TextureNumber].w, RectArr[TextureNumber].h};
+            SDL_RenderCopy(renderer, TextureArr[TextureNumber], NULL, Rect);
+        }
 
         TextureNumber++;
     }
-    
 }
 
 
@@ -110,17 +135,18 @@ int main(int argc, char **argv)
         ImagePathNumber++;
     }
 
-    // To make sure the pegboard does not get squished and retains the correct size with reuse the width of the screen.
-    int SQUARE_WIDTH = WIDTH;
-
-
     // Needs pointers because of the use of arrays in arrays 
-    SDL_Rect PegBoardRect = {0, -SQUARE_WIDTH/16, SQUARE_WIDTH, SQUARE_WIDTH-SQUARE_WIDTH/16}; 
-    SDL_Rect PegRect = {300, SQUARE_WIDTH/7, SQUARE_WIDTH/7, SQUARE_WIDTH/7};
+    SDL_Rect PegBoardRect = {0, -80, WIDTH, WIDTH}; 
+
+    // All basic pegs need to be made in a for loop !!!
+    SDL_Rect PegRect = {300, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
+    SDL_Rect PegRect2 = {400, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
+
     SDL_Rect DummyRect = {90, 90, 90, 90};
 
-    vector<SDL_Rect> RectArray = {DummyRect, PegBoardRect, PegRect};
 
+    vector<SDL_Rect> RectArray = {DummyRect, PegBoardRect, PegRect, PegRect2};
+    vector<int> TextureAmountArray = {1, 1, 2};
 
     SDL_Event windowEvent;
 
@@ -185,7 +211,7 @@ int main(int argc, char **argv)
         SDL_RenderDrawLine(renderer, x_direction, y_direction, 300, 400);
 
         // RectArray is a vector class instead of a double pointer.
-        RenderEverything(renderer, TextureArray, RectArray);
+        RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
 
         // Renderer the loaded textures
         SDL_RenderPresent(renderer);
