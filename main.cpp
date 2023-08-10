@@ -122,11 +122,10 @@ int main(int argc, char **argv)
 
     // Needs pointers because of the use of arrays in arrays 
     SDL_Rect PegBoardRect = {0, -80, SQUARE_WIDTH, SQUARE_WIDTH}; 
-    SDL_Rect PegRect = {303, 115, SQUARE_WIDTH/10, SQUARE_WIDTH/10};
+    SDL_Rect PegRect = {300, 79, int(SQUARE_WIDTH/9.3), int(SQUARE_WIDTH/9.3)};
     SDL_Rect DummyRect = {90, 90, 90, 90};
 
     vector<SDL_Rect> RectArray = {DummyRect, PegBoardRect, PegRect};
-
 
     SDL_Event windowEvent;
 
