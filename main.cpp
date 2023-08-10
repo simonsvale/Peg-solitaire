@@ -68,6 +68,7 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
             {
                 int RectAmount = RenderAmount+TextureNumber;
                 
+                // Iterate through each rect in that "Block" of the same texture defined by the TextureAmountArray.
                 SDL_Rect Rect[4] = {RectArr[RectAmount].x, RectArr[RectAmount].y, RectArr[RectAmount].w, RectArr[RectAmount].h};
 
                 // Iterate through the Textures and their corrosponding SDL_Rects, defining their size on the screen.
