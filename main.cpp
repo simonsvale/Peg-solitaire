@@ -138,17 +138,22 @@ int main(int argc, char **argv)
     // Needs pointers because of the use of arrays in arrays 
     SDL_Rect PegBoardRect = {0, -80, WIDTH, WIDTH}; 
 
-    // All basic pegs need to be made in a for loop !!!
+    /* 
+    All basic pegs need to be made in a for loop !!!, likewise the animation when they jump, 
+    should be a precalcalculated parabola, with x, y being the two first integers in the SDL_Rect.
+    Because of this jump, the pegs "closest" to the player should be rendered ontop of the ones further away.
+    */
     SDL_Rect PegRect = {300, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
-    SDL_Rect PegRect2 = {400, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
 
     SDL_Rect DummyRect = {90, 90, 90, 90};
 
 
-    vector<SDL_Rect> RectArray = {DummyRect, PegBoardRect, PegRect, PegRect2};
     vector<int> TextureAmountArray = {1, 1, 2};
 
     SDL_Event windowEvent;
+
+    // DEBUG TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    int AdditionNumber = 0;
 
     // Window loop
     while (true)
@@ -202,6 +207,10 @@ int main(int argc, char **argv)
             }
 
         }
+        SDL_Rect PegRect2 = {400+AdditionNumber, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
+
+        // In order for animations to work, update the Rect array.
+        vector<SDL_Rect> RectArray = {DummyRect, PegBoardRect, PegRect, PegRect2};
 
         // Actual drawing part
         SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
@@ -215,6 +224,9 @@ int main(int argc, char **argv)
 
         // Renderer the loaded textures
         SDL_RenderPresent(renderer);
+
+        // DEBUG TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        AdditionNumber++;
     }
 
     // Delete the Textures and Surfaces in their respective arrays
