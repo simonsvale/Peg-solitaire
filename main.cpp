@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <fstream>
+#include <string>
 
 // Include SDL2 headers
 #include <SDL2/SDL.h>
@@ -23,6 +25,28 @@ const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 // TEST CODE REMOVE
 int y_direction = 100;
 int x_direction = 100;
+
+
+// Function for reading JSON files containing animation functions.
+int JSONReader(string AnimationFile)
+{
+    string JSONData;
+
+    // Open file
+    ifstream File; 
+    File.open(AnimationFile);
+
+    //Read file
+    if(File.is_open())
+    {
+        while(File.good())
+        {
+            File >> JSONData;
+        }
+    }
+
+    return {};
+}
 
 
 // Function for deleting SDL textures and freeing surfaces
