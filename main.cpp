@@ -27,10 +27,10 @@ int y_direction = 100;
 int x_direction = 100;
 
 
-// Function for reading JSON files containing animation functions.
-int JSONReader(string AnimationFile)
+// Function for reading .aaaf (Arbitrary Animation Attribute File) files containing animation attributes.
+int AnimationFileReader(string AnimationFile)
 {
-    string JSONData;
+    string FileData;
 
     // Open file
     ifstream File; 
@@ -41,7 +41,8 @@ int JSONReader(string AnimationFile)
     {
         while(File.good())
         {
-            File >> JSONData;
+            File >> FileData;
+            cout << FileData << endl;
         }
     }
 
@@ -115,6 +116,9 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
 
 int main(int argc, char **argv) 
 {
+
+    AnimationFileReader("textures/PegJumpAnimation.PAF")
+
     bool IsFullscreen = false;
 
     // For storing the actual images, that are used as textures.
