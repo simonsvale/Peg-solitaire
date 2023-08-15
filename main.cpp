@@ -43,7 +43,7 @@ string FindString(string GivenString, string StringToFind, int Pos)
 
 
 // Function for reading .aaaf (Arbitrary Animation Attribute File) files containing animation attributes.
-vector<int> AnimationFileReader(string AnimationFile)
+vector<int> AAAFileReader(string AnimationFile)
 {
     string FileData;
     string *FileDataPointer;
@@ -61,6 +61,7 @@ vector<int> AnimationFileReader(string AnimationFile)
         {
             File >> FileData;
 
+            // Read the content of the the animation file and identify syntax.
             string AnimationFunction = FindString(FileData, "Function:", 8);
             string TextureStartPos = FindString(FileData, "StartPos:", 8);
 
@@ -142,7 +143,7 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
 int main(int argc, char **argv) 
 {
 
-    AnimationFileReader("textures/PegJumpAnimation.AAAF");
+    AAAFileReader("textures/PegJumpAnimation.AAAF");
 
     bool IsFullscreen = false;
 
