@@ -27,10 +27,28 @@ int y_direction = 100;
 int x_direction = 100;
 
 
+// For finding strings in bigger strings
+string FindString(string GivenString, string StringToFind, int Pos)
+{   
+    string NewString;
+
+    if(GivenString.find(StringToFind) != string::npos)
+    {   
+        NewString = GivenString.substr(9);
+        return NewString;
+    }
+
+    return NewString;
+}
+
+
 // Function for reading .aaaf (Arbitrary Animation Attribute File) files containing animation attributes.
-int AnimationFileReader(string AnimationFile)
+vector<int> AnimationFileReader(string AnimationFile)
 {
     string FileData;
+    string *FileDataPointer;
+
+    (*FileDataPointer++);
 
     // Open file
     ifstream File; 
@@ -42,11 +60,18 @@ int AnimationFileReader(string AnimationFile)
         while(File.good())
         {
             File >> FileData;
-            cout << FileData << endl;
+
+            string AnimationFunction = FindString(FileData, "Function:", 8);
+            string TextureStartPos = FindString(FileData, "StartPos:", 8);
+
+            cout << AnimationFunction << TextureStartPos << endl;
+            
         }
     }
 
-    return {};
+    vector<int> AnimationValues = {};
+
+    return AnimationValues;
 }
 
 
