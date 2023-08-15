@@ -117,7 +117,7 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
 int main(int argc, char **argv) 
 {
 
-    AnimationFileReader("textures/PegJumpAnimation.PAF")
+    AnimationFileReader("textures/PegJumpAnimation.AAAF");
 
     bool IsFullscreen = false;
 
