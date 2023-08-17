@@ -6,6 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include<windows.h> 
 
 // Include SDL2 headers
 #include <SDL2/SDL.h>
@@ -96,7 +97,8 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
 
 int main(int argc, char **argv) 
 {   
-    vector<vector<int> > Hello = PegJumpAnimation(10, 10);
+    // DEBUG!!!!
+    vector<vector<int> > Hello = PegJumpAnimation(300, 79);
 
     bool IsFullscreen = false;
 
@@ -214,8 +216,14 @@ int main(int argc, char **argv)
             }
 
         }
-        // Instead of 400+AdditionNumber the animation function should be called !!!!!!!!!!!!!!!!!!!!!!!!!
-        SDL_Rect PegRect2 = {400+AdditionNumber, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
+
+        SDL_Rect PegRect2 = {428, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
+
+        if(AdditionNumber < Hello.size())
+        {
+            PegRect2 = {Hello[AdditionNumber][0], Hello[AdditionNumber][1], int(WIDTH/9.3), int(WIDTH/9.3)};
+            cout << Hello[AdditionNumber][0] << Hello[AdditionNumber][1] << endl;
+        }
 
         // In order for animations to work, update the Rect array.
         vector<SDL_Rect> RectArray = {DummyRect, PegBoardRect, PegRect, PegRect2};
