@@ -11,6 +11,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+
+// Include own header file(s)
+#include "animations.h"
+
 using namespace std;
 
 /*
@@ -25,7 +29,6 @@ const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 // TEST CODE REMOVE
 int y_direction = 100;
 int x_direction = 100;
-
 
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
@@ -92,7 +95,9 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
 
 
 int main(int argc, char **argv) 
-{
+{   
+    vector<vector<int> > Hello = PegJumpAnimation(10, 10);
+
     bool IsFullscreen = false;
 
     // For storing the actual images, that are used as textures.
