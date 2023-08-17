@@ -22,8 +22,6 @@ vector<vector<int> > PegJumpAnimation(int PosX, int PosY)
 
         ReturnVector.push_back(Vector);
         
-        cout << XValue << ": " << ReturnVector[XValue][0] << ", " << ReturnVector[XValue][1] << endl;
-
         if((0 >= Coords[1]) && (XValue != 0))
         {
             break;
