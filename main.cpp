@@ -27,55 +27,6 @@ int y_direction = 100;
 int x_direction = 100;
 
 
-// For finding strings in bigger strings
-string FindString(string GivenString, string StringToFind, int Pos)
-{   
-    string NewString;
-
-    if(GivenString.find(StringToFind) != string::npos)
-    {   
-        NewString = GivenString.substr(9);
-        return NewString;
-    }
-
-    return NewString;
-}
-
-
-// Function for reading .aaaf (Arbitrary Animation Attribute File) files containing animation attributes.
-vector<int> AAAFileReader(string AnimationFile)
-{
-    string FileData;
-    string *FileDataPointer;
-
-    (*FileDataPointer++);
-
-    // Open file
-    ifstream File; 
-    File.open(AnimationFile);
-
-    //Read file
-    if(File.is_open())
-    {
-        while(File.good())
-        {
-            File >> FileData;
-
-            // Read the content of the the animation file and identify syntax.
-            string AnimationFunction = FindString(FileData, "Function:", 8);
-            string TextureStartPos = FindString(FileData, "StartPos:", 8);
-
-            cout << AnimationFunction << TextureStartPos << endl;
-            
-        }
-    }
-
-    vector<int> AnimationValues = {};
-
-    return AnimationValues;
-}
-
-
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
 {      
@@ -142,9 +93,6 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
 
 int main(int argc, char **argv) 
 {
-
-    AAAFileReader("textures/PegJumpAnimation.AAAF");
-
     bool IsFullscreen = false;
 
     // For storing the actual images, that are used as textures.
@@ -261,6 +209,7 @@ int main(int argc, char **argv)
             }
 
         }
+        // Instead of 400+AdditionNumber the animation function should be called !!!!!!!!!!!!!!!!!!!!!!!!!
         SDL_Rect PegRect2 = {400+AdditionNumber, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
 
         // In order for animations to work, update the Rect array.
