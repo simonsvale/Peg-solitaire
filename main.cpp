@@ -222,7 +222,7 @@ int main(int argc, char **argv)
         if(AdditionNumber < Hello.size())
         {
             PegRect2 = {Hello[AdditionNumber][0], Hello[AdditionNumber][1], int(WIDTH/9.3), int(WIDTH/9.3)};
-            cout << Hello[AdditionNumber][0] << Hello[AdditionNumber][1] << endl;
+            cout << " {" << (Hello[AdditionNumber][0]-300) << ", " << (Hello[AdditionNumber][1]-79) << "},";
         }
 
         // In order for animations to work, update the Rect array.
