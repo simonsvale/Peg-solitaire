@@ -110,8 +110,11 @@ int main(int argc, char **argv)
     // DEBUG!!!! Should take any Peg's current position.
     vector<vector<int> > Hello = PegJumpAnimation(300, 79);
 
-    bool IsPegSelected = false;
+    // To make sure peg animations don't happen at the same time.
     bool IsAnimationActive = false;
+    
+    // To destinguis between a selected peg with outline and one that isn't
+    bool IsPegSelected = false;
     bool IsFullscreen = false;
 
     // For storing the actual images, that are used as textures.
@@ -203,8 +206,24 @@ int main(int argc, char **argv)
                 if(SDL_PointInRect(&MousePos, &PegRect))
                 {
                     cout << "Yep" << endl;
+
+                    /*
+                        1. Switch all Pegs to texture with no outline.
+                        2. Switch selected peg to texture with outline.
+                        3. Change the bool IsPegSelected to True.
+                    */
                 }
     
+            }
+
+            if(IsPegSelected == true)
+            {
+                /* 4. Run function: GetPossibleMoves(), returns an array with possible moves as Rects.
+                   5. If statement to check if any possible moves have been selected using SDL_PointInRect(&MousePos, &PegRect),
+                      but comparing it to the Rects from the GetPossibleMoves() function.
+                   6. Run the AnimationCall Function, for the selected Peg. Update Peg to its new position.
+                */
+                
             }
 
 
