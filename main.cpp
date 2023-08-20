@@ -172,7 +172,7 @@ int main(int argc, char **argv)
     vector<int> TextureAmountArray = {1, 1, 2};
 
     SDL_Event windowEvent;
-    SDL_Point MousePos = {1,1};
+    SDL_Point MousePos;
 
     // DEBUG TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     int AdditionNumber = 0;
