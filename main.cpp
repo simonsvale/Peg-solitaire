@@ -31,6 +31,7 @@ const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 int y_direction = 100;
 int x_direction = 100;
 
+
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
 {      
@@ -94,18 +95,24 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
     }
 }
 
+
 // Take in rect, do animation, set new position
-vector<int> PegJumpCall(SDL_Rect Peg)
+SDL_Rect TextureAnimationCall(SDL_Rect Peg)
 {
-    
+    SDL_Rect NewTexturePosition;
+
+
+    return NewTexturePosition;
 }
+
 
 int main(int argc, char **argv) 
 {   
     // DEBUG!!!! Should take any Peg's current position.
     vector<vector<int> > Hello = PegJumpAnimation(300, 79);
 
-    bool AnimationActive = false;
+    bool IsPegSelected = false;
+    bool IsAnimationActive = false;
     bool IsFullscreen = false;
 
     // For storing the actual images, that are used as textures.
@@ -166,6 +173,7 @@ int main(int argc, char **argv)
     vector<int> TextureAmountArray = {1, 1, 2};
 
     SDL_Event windowEvent;
+    SDL_Point MousePos = {1,1};
 
     // DEBUG TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     int AdditionNumber = 0;
@@ -173,12 +181,27 @@ int main(int argc, char **argv)
     // Window loop
     while (true)
     {
+        // Get mouse postion.
+        SDL_GetMouseState(&MousePos.x, &MousePos.y);
+
         if (SDL_PollEvent(&windowEvent))
         {
             if (SDL_QUIT == windowEvent.type)
             {
                 break;
             }
+
+            if (SDL_MOUSEBUTTONDOWN == windowEvent.type)
+			{  /*
+				if (SDL_PointInRect(&mousePos, &Texture_dst_rect))
+				{
+
+                }
+                */
+               cout << MousePos.x << ", " << MousePos.y << endl;
+    
+            }
+
 
             // handle keyboard input
             if (SDL_KEYDOWN == windowEvent.type)
@@ -237,9 +260,9 @@ int main(int argc, char **argv)
         SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
         SDL_RenderClear(renderer);
 
-        if(AnimationActive == true)
+        if(IsAnimationActive == true)
         {
-            
+
         }
 
         // RectArray is a vector class instead of a double pointer.
