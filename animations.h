@@ -45,8 +45,6 @@ vector<vector<int> > PegJumpAnimation(int PosX, int PosY)
 
         ReturnVector.push_back(Vector);
 
-        cout << Vector[0] << Vector[1] << "size: " << Coords.size() << "XValue: " << XValue << endl;
-
         XValue++;
     }
 

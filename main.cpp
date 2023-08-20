@@ -94,12 +94,18 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
     }
 }
 
+// Take in rect, do animation, set new position
+vector<int> PegJumpCall(SDL_Rect Peg)
+{
+    
+}
 
 int main(int argc, char **argv) 
 {   
-    // DEBUG!!!!
+    // DEBUG!!!! Should take any Peg's current position.
     vector<vector<int> > Hello = PegJumpAnimation(300, 79);
 
+    bool AnimationActive = false;
     bool IsFullscreen = false;
 
     // For storing the actual images, that are used as textures.
@@ -222,7 +228,6 @@ int main(int argc, char **argv)
         if(AdditionNumber < Hello.size())
         {
             PegRect2 = {Hello[AdditionNumber][0], Hello[AdditionNumber][1], int(WIDTH/9.3), int(WIDTH/9.3)};
-            cout << " {" << (Hello[AdditionNumber][0]-300) << ", " << (Hello[AdditionNumber][1]-79) << "},";
         }
 
         // In order for animations to work, update the Rect array.
@@ -231,9 +236,11 @@ int main(int argc, char **argv)
         // Actual drawing part
         SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
         SDL_RenderClear(renderer);
-        SDL_SetRenderDrawColor(renderer, 255, 255, 100, 255);
 
-        SDL_RenderDrawLine(renderer, x_direction, y_direction, 300, 400);
+        if(AnimationActive == true)
+        {
+            
+        }
 
         // RectArray is a vector class instead of a double pointer.
         RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
