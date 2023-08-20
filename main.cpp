@@ -97,10 +97,9 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
 
 
 // Take in rect, do animation, set new position
-SDL_Rect TextureAnimationCall(SDL_Rect Peg)
+SDL_Rect TextureAnimationCall(SDL_Rect TextureRect)
 {
     SDL_Rect NewTexturePosition;
-
 
     return NewTexturePosition;
 }
@@ -199,6 +198,12 @@ int main(int argc, char **argv)
                 }
                 */
                cout << MousePos.x << ", " << MousePos.y << endl;
+
+                   // Check if mouse's position is ontop of the texture.
+                if(SDL_PointInRect(&MousePos, &PegRect))
+                {
+                    cout << "Yep" << endl;
+                }
     
             }
 
