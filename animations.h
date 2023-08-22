@@ -1,35 +1,30 @@
 #ifndef animations_h_
 #define animations_h_
+
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
-// The Parabola jump
-vector<vector<int> > PegJumpAnimation(int PosX, int PosY)
+// The Parabola jump, JumpDirection, 0 = right, 1 = left, 2 = up, 3 = down.
+vector<vector<int> > PegJumpAnimation(int PosX, int PosY, int JumpLength, int JumpDirection)
 {
     vector<vector<int> > ReturnVector;
-    vector<int> Coords = {0,0};
+    vector<int> Coords;
+    vector<int> Vector;
 
-    for(int XValue = 0; XValue < 400;)
+
+    // Iterate and add the new X and Y values of the current position of the texture.
+    for(int XValue = 0; XValue < JumpLength+1;)
     {   
-        vector<int> Vector;
- 
-        // Function definition 
-        Coords[1] = sqrt(128*XValue-pow(XValue, 2));
-
         Vector.push_back(XValue+PosX);
-        Vector.push_back(Coords[1]+PosY);
+        Vector.push_back(int(sqrt(JumpLength*XValue-pow(XValue, 2)))+PosY);
 
         ReturnVector.push_back(Vector);
-        
-        if((0 >= Coords[1]) && (XValue != 0))
-        {
-            break;
-        }
+        Vector.clear();
 
         XValue++;
-
     }
 
     return ReturnVector;

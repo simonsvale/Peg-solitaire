@@ -18,11 +18,6 @@
 
 using namespace std;
 
-/*
-    The ImagePathArray should not actually be Global, 
-    but it is easier this way since the 
-    ImagePathArraySize integer is needed in almost every function.
-*/ 
 
 const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png"};
 const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
@@ -30,6 +25,7 @@ const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 // TEST CODE REMOVE
 int y_direction = 100;
 int x_direction = 100;
+
 
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
@@ -45,6 +41,7 @@ void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
 }
 
 
+// Loads surfaces from an image path
 SDL_Surface *LoadSurface(const char *ImagePath)
 {   
     // Load image from given Path
@@ -53,13 +50,14 @@ SDL_Surface *LoadSurface(const char *ImagePath)
 }
 
 
+// Loads texture from a surface
 SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
 {
     SDL_Texture *SurfaceTexture = SDL_CreateTextureFromSurface(renderer, Surface);
     return SurfaceTexture;
 }
 
-
+// Renders everything
 void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr)
 {   
     // Get size of RectArr, this is necessary since we need to render the peg image multiple times.
@@ -94,12 +92,19 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
     }
 }
 
-
 int main(int argc, char **argv) 
 {   
-    // DEBUG!!!!
-    vector<vector<int> > Hello = PegJumpAnimation(300, 79);
+    // For determining if the window is minimized or not.
+    bool IsWindowActive = true;
 
+    // Create the game tick variable.
+    int GameTick = 0;
+
+    // To make sure peg animations don't happen at the same time.
+    bool IsAnimationActive = false;
+    
+    // To distinguish between a selected peg with outline and one that isn't
+    bool IsPegSelected = false;
     bool IsFullscreen = false;
 
     // For storing the actual images, that are used as textures.
@@ -113,6 +118,7 @@ int main(int argc, char **argv)
     // initialize SDL window and renderer
     SDL_Init(SDL_INIT_EVERYTHING);
 
+
     // Throws an error in the VS IDE, but somehow it still works...
     SDL_DisplayMode DisplaySize;
     SDL_GetCurrentDisplayMode(0, &DisplaySize);
@@ -120,17 +126,20 @@ int main(int argc, char **argv)
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
     int WIDTH = DisplaySize.w/2;
     int HEIGHT = DisplaySize.h/1.4;
+    vector<int> ScreenResolution = {WIDTH, HEIGHT};
 
+
+    // Create the SDL window and set its title
     SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI, &window, &renderer);
-    SDL_SetWindowTitle(window, "Game window");
+    SDL_SetWindowTitle(window, "Peg Solitaire");
     SDL_RenderSetScale(renderer, 1, 1);
-
     if (NULL == window)
     {
         std::cout << "Could not create window" << SDL_GetError() << std::endl;
         return 1;
     }
     
+
     // Create surfaces and textures and store them in ararys
     for(int ImagePathNumber = 0; ImagePathNumber <= ImagePathArraySize-1;)
     {
@@ -144,35 +153,120 @@ int main(int argc, char **argv)
         ImagePathNumber++;
     }
 
-    // Needs pointers because of the use of arrays in arrays 
-    SDL_Rect PegBoardRect = {0, -80, WIDTH, WIDTH}; 
+    // Vector for storing Rects.
+    vector<SDL_Rect> RectArray;
 
-    /* 
-    All basic pegs need to be made in a for loop !!!, likewise the animation when they jump, 
-    should be a precalcalculated parabola, with x, y being the two first integers in the SDL_Rect.
-    Because of this jump, the pegs "closest" to the player should be rendered ontop of the ones further away.
-    */
-    SDL_Rect PegRect = {300, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
+    // peg width = 43
 
-    SDL_Rect DummyRect = {90, 90, 90, 90};
+    // Push Rects to the RectArray
+    RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
+    RectArray.push_back({0, -80, WIDTH, WIDTH}); // board texture rect
+
+    // A vector for holding Integers determining the spacing between pegs.
+    vector<vector<int> > BoardConfigurationArray = {{129}, {60, 63}};
+
+    vector<int> PegWidth = {43, 42, 43, 42, 43, 42, 43};
 
 
-    vector<int> TextureAmountArray = {1, 1, 2};
+    // Create all 32 pegs and push them to the RectArray.
+    for(int PegNumber = 0; PegNumber < 32;)
+    {
+        RectArray.push_back({1,2,3,4});
 
+        PegNumber++;
+    }
+
+    RectArray.push_back({330, 93, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+    RectArray.push_back({459, 93, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+    RectArray.push_back({588, 183, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+    RectArray.push_back({172, 258, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+
+
+    vector<int> TextureAmountArray = {1, 1, int(RectArray.size()-2)};
+
+
+    // DEBUG!!!! Should take any Peg's current position.
+    // And needs two, since there is either 43 (129) or 42 (128) pixels between each peg
+    vector<vector<int> > Hello = PegJumpAnimation(330, 93, 129, 0);
+
+    // Setup SDL variables
     SDL_Event windowEvent;
+    SDL_Point MousePos;
 
-    // DEBUG TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    int AdditionNumber = 0;
 
-    // Window loop
+    // Set background color
+    SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
+    SDL_RenderClear(renderer);
+    
+
+    // Initial renderer
+    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
+    SDL_RenderPresent(renderer);
+
+    // Game loop
     while (true)
     {
+        // Get mouse postion and window flag
+        SDL_GetMouseState(&MousePos.x, &MousePos.y);
+        int WindowFlag = SDL_GetWindowFlags(window);
+
+        /* If the window gains focus render everything again.
+        Works flawlessly except for the edgecase where the taskbar makes 
+        SDL_GetWindowFlags() think the window is hidden since the taskbar is alway ontop.*/
+        if((WindowFlag == 8260) || (IsWindowActive == false))
+        {
+            IsWindowActive = false;
+
+            if(WindowFlag == 8708)
+            {
+                IsWindowActive = true;
+
+                SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
+                SDL_RenderClear(renderer);
+                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
+                SDL_RenderPresent(renderer);
+            }
+        }
+
         if (SDL_PollEvent(&windowEvent))
         {
             if (SDL_QUIT == windowEvent.type)
             {
                 break;
             }
+
+            if (SDL_MOUSEBUTTONDOWN == windowEvent.type)
+			{  
+
+                // DEBUG !!!!!!!!
+                cout << MousePos.x << ", " << MousePos.y << endl;
+
+                // Check if mouse's position is ontop of the texture.
+                if(SDL_PointInRect(&MousePos, &RectArray[2]))
+                {
+                    cout << "Yep" << endl;
+
+                    IsAnimationActive = true;
+
+                    /*
+                        1. Switch all Pegs to texture with no outline.
+                        2. Switch selected peg to texture with outline.
+                        3. Change the bool IsPegSelected to True.
+                    */
+                }
+    
+            }
+
+            if(IsPegSelected == true)
+            {
+                /* 4. Run function: GetPossibleMoves(), returns an array with possible moves as Rects.
+                   5. If statement to check if any possible moves have been selected using SDL_PointInRect(&MousePos, &PegRect),
+                      but comparing it to the Rects from the GetPossibleMoves() function.
+                   6. Run the AnimationCall Function, for the selected Peg. Update Peg to its new position.
+                */
+                
+            }
+
 
             // handle keyboard input
             if (SDL_KEYDOWN == windowEvent.type)
@@ -217,32 +311,30 @@ int main(int argc, char **argv)
 
         }
 
-        SDL_Rect PegRect2 = {428, 79, int(WIDTH/9.3), int(WIDTH/9.3)};
-
-        if(AdditionNumber < Hello.size())
+        if(IsAnimationActive == true)
         {
-            PegRect2 = {Hello[AdditionNumber][0], Hello[AdditionNumber][1], int(WIDTH/9.3), int(WIDTH/9.3)};
-            cout << Hello[AdditionNumber][0] << Hello[AdditionNumber][1] << endl;
+            if(GameTick < Hello.size())
+            {
+                // Update RectArray to do animation
+                RectArray[2] = {Hello[GameTick][0], Hello[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
+
+                // Render the animation
+                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
+                SDL_RenderPresent(renderer);
+            }
+            else
+            {
+                IsAnimationActive = false;
+            }
+
+            GameTick++;
         }
-
-        // In order for animations to work, update the Rect array.
-        vector<SDL_Rect> RectArray = {DummyRect, PegBoardRect, PegRect, PegRect2};
-
-        // Actual drawing part
-        SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
-        SDL_RenderClear(renderer);
-        SDL_SetRenderDrawColor(renderer, 255, 255, 100, 255);
-
-        SDL_RenderDrawLine(renderer, x_direction, y_direction, 300, 400);
-
-        // RectArray is a vector class instead of a double pointer.
-        RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
-
-        // Renderer the loaded textures
-        SDL_RenderPresent(renderer);
-
-        // DEBUG TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        AdditionNumber++;
+        
+        // Set Gametick to zero again so the next event can happen
+        if(IsAnimationActive == false)
+        {
+            GameTick = 0;
+        }
     }
 
     // Delete the Textures and Surfaces in their respective arrays
