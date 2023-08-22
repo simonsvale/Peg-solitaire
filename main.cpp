@@ -57,27 +57,6 @@ SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
     return SurfaceTexture;
 }
 
-
-// Deprecated
-void RenderAnimation(SDL_Renderer *renderer, int AnimationType, int TextureNumber, SDL_Texture *TextureArr[], SDL_Rect TextureRect, vector<int> ScreenRes)
-{
-    if(AnimationType == 1)
-    {
-        vector<vector<int> > AnimationPosVector = PegJumpAnimation(TextureRect.y, TextureRect.x);
-
-        for(int RenderNumber = 0; RenderNumber < AnimationPosVector.size();)
-        {
-            SDL_Rect NewTextureRect[4] = {AnimationPosVector[RenderNumber][0], AnimationPosVector[RenderNumber][1], int(ScreenRes[0]/9.3), int(ScreenRes[0]/9.3)};
-
-            // Iterate through the Textures and their corrosponding SDL_Rects, defining their size on the screen.
-            SDL_RenderCopy(renderer, TextureArr[TextureNumber-1], NULL, NewTextureRect);
-
-            RenderNumber++;
-        }
-    }
-}
-
-
 // Renders everything
 void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr)
 {   
@@ -115,9 +94,11 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
 
 int main(int argc, char **argv) 
 {   
-    // DEBUG!!!! Should take any Peg's current position.
-    vector<vector<int> > Hello = PegJumpAnimation(300, 79);
+    // For determining if the window is minimized or not.
+    bool IsWindowActive = true;
 
+    // Create the game tick variable.
+    int GameTick = 0;
 
     // To make sure peg animations don't happen at the same time.
     bool IsAnimationActive = false;
@@ -147,17 +128,18 @@ int main(int argc, char **argv)
     int HEIGHT = DisplaySize.h/1.4;
     vector<int> ScreenResolution = {WIDTH, HEIGHT};
 
+
     // Create the SDL window and set its title
     SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI, &window, &renderer);
     SDL_SetWindowTitle(window, "Peg Solitaire");
     SDL_RenderSetScale(renderer, 1, 1);
-
     if (NULL == window)
     {
         std::cout << "Could not create window" << SDL_GetError() << std::endl;
         return 1;
     }
     
+
     // Create surfaces and textures and store them in ararys
     for(int ImagePathNumber = 0; ImagePathNumber <= ImagePathArraySize-1;)
     {
@@ -185,10 +167,11 @@ int main(int argc, char **argv)
 
     vector<int> PegWidth = {43, 42, 43, 42, 43, 42, 43};
 
+
     // Create all 32 pegs and push them to the RectArray.
     for(int PegNumber = 0; PegNumber < 32;)
     {
-        //RectArray.push_back({1,2,3,4});
+        RectArray.push_back({1,2,3,4});
 
         PegNumber++;
     }
@@ -201,11 +184,15 @@ int main(int argc, char **argv)
 
     vector<int> TextureAmountArray = {1, 1, int(RectArray.size()-2)};
 
+
+    // DEBUG!!!! Should take any Peg's current position.
+    // And needs two, since there is either 43 (129) or 42 (128) pixels between each peg
+    vector<vector<int> > Hello = PegJumpAnimation(330, 93, 129, 0);
+
+    // Setup SDL variables
     SDL_Event windowEvent;
     SDL_Point MousePos;
 
-    // Create the game tick variable.
-    int GameTick = 0;
 
     // Set background color
     SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
@@ -216,11 +203,30 @@ int main(int argc, char **argv)
     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
     SDL_RenderPresent(renderer);
 
-    // Window loop
+    // Game loop
     while (true)
     {
-        // Get mouse postion.
+        // Get mouse postion and window flag
         SDL_GetMouseState(&MousePos.x, &MousePos.y);
+        int WindowFlag = SDL_GetWindowFlags(window);
+
+        /* If the window gains focus render everything again.
+        Works flawlessly except for the edgecase where the taskbar makes 
+        SDL_GetWindowFlags() think the window is hidden since the taskbar is alway ontop.*/
+        if((WindowFlag == 8260) || (IsWindowActive == false))
+        {
+            IsWindowActive = false;
+
+            if(WindowFlag == 8708)
+            {
+                IsWindowActive = true;
+
+                SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
+                SDL_RenderClear(renderer);
+                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
+                SDL_RenderPresent(renderer);
+            }
+        }
 
         if (SDL_PollEvent(&windowEvent))
         {
@@ -310,9 +316,7 @@ int main(int argc, char **argv)
             if(GameTick < Hello.size())
             {
                 // Update RectArray to do animation
-                RectArray[2] = {Hello[GameTick][0], Hello[GameTick][1], int(WIDTH/9.3), int(WIDTH/9.3)};
-
-                cout << Hello[GameTick][0] << Hello[GameTick][1] << endl;
+                RectArray[2] = {Hello[GameTick][0], Hello[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
                 // Render the animation
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
@@ -325,8 +329,6 @@ int main(int argc, char **argv)
 
             GameTick++;
         }
-
-        // DEBUG TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         // Set Gametick to zero again so the next event can happen
         if(IsAnimationActive == false)
