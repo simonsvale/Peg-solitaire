@@ -133,6 +133,7 @@ int main(int argc, char **argv)
     SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI, &window, &renderer);
     SDL_SetWindowTitle(window, "Peg Solitaire");
     SDL_RenderSetScale(renderer, 1, 1);
+
     if (NULL == window)
     {
         std::cout << "Could not create window" << SDL_GetError() << std::endl;
@@ -165,29 +166,47 @@ int main(int argc, char **argv)
     // A vector for holding Integers determining the spacing between pegs.
     vector<vector<int> > BoardConfigurationArray = {{129}, {60, 63}};
 
-    vector<int> PegWidth = {43, 42, 43, 42, 43, 42, 43};
+    vector<int> PegSetupX = {73, 202, 330, 458, 587, 715, 843};
+    vector<int> PegSetupY = {4, 93, 183, 277, 370, 460, 550};
 
 
-    // Create all 32 pegs and push them to the RectArray.
-    for(int PegNumber = 0; PegNumber < 32;)
+    // Create 7x7 pegs
+    for(int PegPosX = 0; PegPosX < 7;)
     {
-        RectArray.push_back({1,2,3,4});
+        for(int PegPosY = 0; PegPosY < 7;)
+        {
+            RectArray.push_back({PegSetupX[PegPosX], PegSetupY[PegPosY], int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
 
-        PegNumber++;
+            PegPosY++;
+        }
+
+        PegPosX++;
     }
 
-    RectArray.push_back({330, 93, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
-    RectArray.push_back({459, 93, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
-    RectArray.push_back({588, 183, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
-    RectArray.push_back({172, 258, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+    // Remove the pegs that should not be there and end up with 32.
+    // In the future a bigger board could be added. !!!
+
+    // Remove pins on the left
+    RectArray.erase(RectArray.begin()+2, RectArray.begin()+4);
+    RectArray.erase(RectArray.begin()+5, RectArray.begin()+9);
+    RectArray.erase(RectArray.begin()+8, RectArray.begin()+10);
+
+    // Remove middle pin
+    RectArray.erase(RectArray.begin()+18);
+
+    // Remove pins on the right
+    RectArray.erase(RectArray.end()-2, RectArray.end());
+    RectArray.erase(RectArray.end()-7, RectArray.end()-3);
+    RectArray.erase(RectArray.end()-8, RectArray.end()-6);
 
 
+    // An array for determining how many times a texture should be used to make a sprite.
     vector<int> TextureAmountArray = {1, 1, int(RectArray.size()-2)};
 
 
     // DEBUG!!!! Should take any Peg's current position.
     // And needs two, since there is either 43 (129) or 42 (128) pixels between each peg
-    vector<vector<int> > Hello = PegJumpAnimation(330, 93, 129, 0);
+    vector<vector<int> > Hello = PegJumpAnimation(330, 93, 128, 0);
 
     // Setup SDL variables
     SDL_Event windowEvent;
@@ -198,7 +217,6 @@ int main(int argc, char **argv)
     SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
     SDL_RenderClear(renderer);
     
-
     // Initial renderer
     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
     SDL_RenderPresent(renderer);
@@ -223,6 +241,7 @@ int main(int argc, char **argv)
 
                 SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
                 SDL_RenderClear(renderer);
+
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
                 SDL_RenderPresent(renderer);
             }
@@ -314,7 +333,11 @@ int main(int argc, char **argv)
         if(IsAnimationActive == true)
         {
             if(GameTick < Hello.size())
-            {
+            {   
+                // Rerender the background, so the top most pegs don't get "burned in" on the screen.
+                SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
+                SDL_RenderClear(renderer);
+
                 // Update RectArray to do animation
                 RectArray[2] = {Hello[GameTick][0], Hello[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
