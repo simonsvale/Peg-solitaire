@@ -133,6 +133,7 @@ int main(int argc, char **argv)
     SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI, &window, &renderer);
     SDL_SetWindowTitle(window, "Peg Solitaire");
     SDL_RenderSetScale(renderer, 1, 1);
+
     if (NULL == window)
     {
         std::cout << "Could not create window" << SDL_GetError() << std::endl;
@@ -165,21 +166,33 @@ int main(int argc, char **argv)
     // A vector for holding Integers determining the spacing between pegs.
     vector<vector<int> > BoardConfigurationArray = {{129}, {60, 63}};
 
-    vector<int> PegWidth = {43, 42, 43, 42, 43, 42, 43};
+    vector<int> PegSetupLength = {73, 202, 330, 458, 587, 715, 43};
+    vector<int> PegSetupHeight = {4, 93, 183, 277, 370, 460, 550};
 
 
     // Create all 32 pegs and push them to the RectArray.
     for(int PegNumber = 0; PegNumber < 32;)
     {
-        RectArray.push_back({1,2,3,4});
+        //RectArray.push_back({1,2,3,4});
 
         PegNumber++;
     }
 
+    RectArray.push_back({330, 4, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+
     RectArray.push_back({330, 93, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
-    RectArray.push_back({459, 93, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
-    RectArray.push_back({588, 183, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
-    RectArray.push_back({172, 258, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+
+    RectArray.push_back({458, 93, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+    RectArray.push_back({458, 550, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+
+    RectArray.push_back({587, 183, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+    RectArray.push_back({587, 460, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+
+    RectArray.push_back({202, 277, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+    RectArray.push_back({844, 277, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+
+    RectArray.push_back({73, 370, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+    RectArray.push_back({715, 370, int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
 
 
     vector<int> TextureAmountArray = {1, 1, int(RectArray.size()-2)};
@@ -187,7 +200,7 @@ int main(int argc, char **argv)
 
     // DEBUG!!!! Should take any Peg's current position.
     // And needs two, since there is either 43 (129) or 42 (128) pixels between each peg
-    vector<vector<int> > Hello = PegJumpAnimation(330, 93, 129, 0);
+    vector<vector<int> > Hello = PegJumpAnimation(330, 93, 128, 0);
 
     // Setup SDL variables
     SDL_Event windowEvent;
