@@ -6,7 +6,8 @@
 #include <vector>
 #include <fstream>
 #include <string>
-#include<windows.h> 
+#include <windows.h> 
+#include <chrono>
 
 // Include SDL2 headers
 #include <SDL2/SDL.h>
@@ -17,6 +18,7 @@
 #include "animations.h"
 
 using namespace std;
+using namespace chrono;
 
 
 const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png"};
@@ -206,8 +208,9 @@ int main(int argc, char **argv)
 
     // DEBUG!!!! Should take any Peg's current position.
     // And needs two, since there is either 43 (129) or 42 (128) pixels between each peg
-    vector<vector<int> > Hello = PegJumpAnimation(330, 93, 128, 0);
 
+    vector<vector<int> > Hello = PegJumpAnimation128(330, 93);
+  
     // Setup SDL variables
     SDL_Event windowEvent;
     SDL_Point MousePos;
@@ -331,7 +334,9 @@ int main(int argc, char **argv)
         }
 
         if(IsAnimationActive == true)
-        {
+        {   
+            // Start timing, using chrono (DEBUG)
+            time_point<steady_clock> start = steady_clock::now();
             if(GameTick < Hello.size())
             {   
                 // Rerender the background, so the top most pegs don't get "burned in" on the screen.
@@ -348,6 +353,13 @@ int main(int argc, char **argv)
             else
             {
                 IsAnimationActive = false;
+
+                // Stop timing (DEBUG)
+                time_point<steady_clock> end = steady_clock::now();
+
+                duration<double, nano> fp_ns = end - start; 
+
+                cout << fp_ns.count() << " ns" << endl;
             }
 
             GameTick++;
@@ -357,6 +369,7 @@ int main(int argc, char **argv)
         if(IsAnimationActive == false)
         {
             GameTick = 0;
+
         }
     }
 
