@@ -51,8 +51,8 @@ vector<vector<int> > PegJumpAnimation128(int PosX, int PosY)
     return ReturnVector;
 }
 
-// Function utilizing calculating each animation frame realtime. 
-// Using the lookup table is 377x faster than recalculating each animation (probably beacause of the sqrt() calculation)
+// Function utilizing calculations to determine the position of the sprite each animation frame. 
+// Using the lookup table is faster than recalculating each animation (probably beacause of the sqrt() calculation)
 vector<vector<int> > PegJumpAnimationCalculated(int PosX, int PosY, int JumpLength)
 {
     vector<vector<int> > ReturnVector;

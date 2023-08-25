@@ -59,6 +59,7 @@ SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
     return SurfaceTexture;
 }
 
+
 // Renders everything
 void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr)
 {   
@@ -93,6 +94,7 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
         TextureNumber++;
     }
 }
+
 
 int main(int argc, char **argv) 
 {   
@@ -208,8 +210,7 @@ int main(int argc, char **argv)
 
     // DEBUG!!!! Should take any Peg's current position.
     // And needs two, since there is either 43 (129) or 42 (128) pixels between each peg
-
-    vector<vector<int> > Hello = PegJumpAnimation128(330, 93);
+    vector<vector<int> > PegJumpAnimationFrames;
   
     // Setup SDL variables
     SDL_Event windowEvent;
@@ -337,14 +338,20 @@ int main(int argc, char **argv)
         {   
             // Start timing, using chrono (DEBUG)
             time_point<steady_clock> start = steady_clock::now();
-            if(GameTick < Hello.size())
+            
+            if(PegJumpAnimationFrames.size() == 0)
+            {
+                PegJumpAnimationFrames = PegJumpAnimation128(330, 93);
+            }
+
+            if(GameTick < PegJumpAnimationFrames.size())
             {   
                 // Rerender the background, so the top most pegs don't get "burned in" on the screen.
                 SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
                 SDL_RenderClear(renderer);
 
                 // Update RectArray to do animation
-                RectArray[2] = {Hello[GameTick][0], Hello[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
+                RectArray[2] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
                 // Render the animation
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
@@ -356,9 +363,7 @@ int main(int argc, char **argv)
 
                 // Stop timing (DEBUG)
                 time_point<steady_clock> end = steady_clock::now();
-
                 duration<double, nano> fp_ns = end - start; 
-
                 cout << fp_ns.count() << " ns" << endl;
             }
 
