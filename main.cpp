@@ -95,6 +95,23 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
     }
 }
 
+bool SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
+{
+    for(int RectNumber = 3; RectNumber < RectArray.size()-2;)
+    {
+        if(SDL_PointInRect(&MousePos, &RectArray[RectNumber]) == true)
+        {
+            cout << RectNumber << endl;
+            return true;
+        }
+
+        RectNumber++;
+    }
+
+
+    return false;
+}
+
 
 int main(int argc, char **argv) 
 {   
@@ -106,6 +123,7 @@ int main(int argc, char **argv)
 
     // To make sure peg animations don't happen at the same time.
     bool IsAnimationActive = false;
+    bool IsSpriteClicked = false;
     
     // To distinguish between a selected peg with outline and one that isn't
     bool IsPegSelected = false;
@@ -264,11 +282,13 @@ int main(int argc, char **argv)
                 // DEBUG !!!!!!!!
                 cout << MousePos.x << ", " << MousePos.y << endl;
 
-                // Check if mouse's position is ontop of the texture.
-                if(SDL_PointInRect(&MousePos, &RectArray[2]))
-                {
-                    cout << "Yep" << endl;
+                // Reset the bool IsSpriteClicked.
+                IsSpriteClicked = false;
+                IsSpriteClicked = SpriteClickDetection(MousePos, RectArray);
 
+                // Check if mouse's position is ontop of the texture.
+                if(IsSpriteClicked == true)
+                {
                     IsAnimationActive = true;
 
                     /*
@@ -331,7 +351,6 @@ int main(int argc, char **argv)
                     --x_direction;
                 }
             }
-
         }
 
         if(IsAnimationActive == true)
@@ -341,6 +360,7 @@ int main(int argc, char **argv)
             
             if(PegJumpAnimationFrames.size() == 0)
             {
+                // The values should be the current position of the selected peg. (!!!)
                 PegJumpAnimationFrames = PegJumpAnimation128(330, 93);
             }
 
@@ -350,7 +370,7 @@ int main(int argc, char **argv)
                 SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
                 SDL_RenderClear(renderer);
 
-                // Update RectArray to do animation
+                // Update RectArray to do animation [2] should be a variable: int SelectPeg (!!!)
                 RectArray[2] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
                 // Render the animation
@@ -374,7 +394,6 @@ int main(int argc, char **argv)
         if(IsAnimationActive == false)
         {
             GameTick = 0;
-
         }
     }
 
