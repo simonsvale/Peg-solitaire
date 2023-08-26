@@ -28,6 +28,13 @@ const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 int y_direction = 100;
 int x_direction = 100;
 
+// Struct for clicked peg return
+struct ClickedPeg
+{
+    int RectNumber;
+    bool IsSpriteClicked;
+};
+
 
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
@@ -95,21 +102,30 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
     }
 }
 
-bool SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
+// Function for detecting when a sprite is clicked.
+ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
 {
-    for(int RectNumber = 3; RectNumber < RectArray.size()-2;)
+    ClickedPeg returnVal;
+
+    for(int RectNumber = 2; RectNumber < RectArray.size();)
     {
         if(SDL_PointInRect(&MousePos, &RectArray[RectNumber]) == true)
         {
             cout << RectNumber << endl;
-            return true;
+
+            returnVal.IsSpriteClicked = true;
+            returnVal.RectNumber = RectNumber;
+
+            return returnVal;
         }
 
         RectNumber++;
     }
 
+    returnVal.IsSpriteClicked = false;
+    returnVal.RectNumber = -1;
 
-    return false;
+    return returnVal;
 }
 
 
@@ -178,8 +194,10 @@ int main(int argc, char **argv)
 
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
+    vector<int> PegPositionArray = {1, 1, 1};
 
-    // peg width = 43
+
+
 
     // Push Rects to the RectArray
     RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
@@ -233,6 +251,7 @@ int main(int argc, char **argv)
     // Setup SDL variables
     SDL_Event windowEvent;
     SDL_Point MousePos;
+    ClickedPeg SpriteInfo;
 
 
     // Set background color
@@ -276,7 +295,7 @@ int main(int argc, char **argv)
                 break;
             }
 
-            if (SDL_MOUSEBUTTONDOWN == windowEvent.type)
+            if ((SDL_MOUSEBUTTONDOWN == windowEvent.type) && (IsAnimationActive == false))
 			{  
 
                 // DEBUG !!!!!!!!
@@ -284,7 +303,11 @@ int main(int argc, char **argv)
 
                 // Reset the bool IsSpriteClicked.
                 IsSpriteClicked = false;
-                IsSpriteClicked = SpriteClickDetection(MousePos, RectArray);
+                SpriteInfo = SpriteClickDetection(MousePos, RectArray);
+
+                IsSpriteClicked = SpriteInfo.IsSpriteClicked;
+
+                cout << "SpriteInfo: " << RectArray[SpriteInfo.RectNumber].x << ", " << RectArray[SpriteInfo.RectNumber].y << endl;
 
                 // Check if mouse's position is ontop of the texture.
                 if(IsSpriteClicked == true)
@@ -361,7 +384,8 @@ int main(int argc, char **argv)
             if(PegJumpAnimationFrames.size() == 0)
             {
                 // The values should be the current position of the selected peg. (!!!)
-                PegJumpAnimationFrames = PegJumpAnimation128(330, 93);
+                PegJumpAnimationFrames = PegJumpAnimation128(RectArray[SpriteInfo.RectNumber].x, RectArray[SpriteInfo.RectNumber].y);
+                cout << RectArray[SpriteInfo.RectNumber].x << ", " << RectArray[SpriteInfo.RectNumber].y << endl;
             }
 
             if(GameTick < PegJumpAnimationFrames.size())
@@ -371,7 +395,7 @@ int main(int argc, char **argv)
                 SDL_RenderClear(renderer);
 
                 // Update RectArray to do animation [2] should be a variable: int SelectPeg (!!!)
-                RectArray[2] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
+                RectArray[SpriteInfo.RectNumber] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
                 // Render the animation
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
@@ -385,6 +409,8 @@ int main(int argc, char **argv)
                 time_point<steady_clock> end = steady_clock::now();
                 duration<double, nano> fp_ns = end - start; 
                 cout << fp_ns.count() << " ns" << endl;
+
+                PegJumpAnimationFrames.clear();
             }
 
             GameTick++;
