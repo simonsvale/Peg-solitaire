@@ -6,7 +6,8 @@
 #include <vector>
 #include <fstream>
 #include <string>
-#include<windows.h> 
+#include <windows.h> 
+#include <chrono>
 
 // Include SDL2 headers
 #include <SDL2/SDL.h>
@@ -17,6 +18,7 @@
 #include "animations.h"
 
 using namespace std;
+using namespace chrono;
 
 
 const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png"};
@@ -25,6 +27,13 @@ const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 // TEST CODE REMOVE
 int y_direction = 100;
 int x_direction = 100;
+
+// Struct for clicked peg return
+struct ClickedPeg
+{
+    int RectNumber;
+    bool IsSpriteClicked;
+};
 
 
 // Function for deleting SDL textures and freeing surfaces
@@ -56,6 +65,7 @@ SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
     SDL_Texture *SurfaceTexture = SDL_CreateTextureFromSurface(renderer, Surface);
     return SurfaceTexture;
 }
+
 
 // Renders everything
 void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr)
@@ -92,6 +102,33 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
     }
 }
 
+// Function for detecting when a sprite is clicked.
+ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
+{
+    ClickedPeg returnVal;
+
+    for(int RectNumber = 2; RectNumber < RectArray.size();)
+    {
+        if(SDL_PointInRect(&MousePos, &RectArray[RectNumber]) == true)
+        {
+            cout << RectNumber << endl;
+
+            returnVal.IsSpriteClicked = true;
+            returnVal.RectNumber = RectNumber;
+
+            return returnVal;
+        }
+
+        RectNumber++;
+    }
+
+    returnVal.IsSpriteClicked = false;
+    returnVal.RectNumber = -1;
+
+    return returnVal;
+}
+
+
 int main(int argc, char **argv) 
 {   
     // For determining if the window is minimized or not.
@@ -102,6 +139,7 @@ int main(int argc, char **argv)
 
     // To make sure peg animations don't happen at the same time.
     bool IsAnimationActive = false;
+    bool IsSpriteClicked = false;
     
     // To distinguish between a selected peg with outline and one that isn't
     bool IsPegSelected = false;
@@ -156,8 +194,10 @@ int main(int argc, char **argv)
 
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
+    vector<int> PegPositionArray = {1, 1, 1};
 
-    // peg width = 43
+
+
 
     // Push Rects to the RectArray
     RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
@@ -206,11 +246,12 @@ int main(int argc, char **argv)
 
     // DEBUG!!!! Should take any Peg's current position.
     // And needs two, since there is either 43 (129) or 42 (128) pixels between each peg
-    vector<vector<int> > Hello = PegJumpAnimation(330, 93, 128, 0);
-
+    vector<vector<int> > PegJumpAnimationFrames;
+  
     // Setup SDL variables
     SDL_Event windowEvent;
     SDL_Point MousePos;
+    ClickedPeg SpriteInfo;
 
 
     // Set background color
@@ -254,17 +295,23 @@ int main(int argc, char **argv)
                 break;
             }
 
-            if (SDL_MOUSEBUTTONDOWN == windowEvent.type)
+            if ((SDL_MOUSEBUTTONDOWN == windowEvent.type) && (IsAnimationActive == false))
 			{  
 
                 // DEBUG !!!!!!!!
                 cout << MousePos.x << ", " << MousePos.y << endl;
 
-                // Check if mouse's position is ontop of the texture.
-                if(SDL_PointInRect(&MousePos, &RectArray[2]))
-                {
-                    cout << "Yep" << endl;
+                // Reset the bool IsSpriteClicked.
+                IsSpriteClicked = false;
+                SpriteInfo = SpriteClickDetection(MousePos, RectArray);
 
+                IsSpriteClicked = SpriteInfo.IsSpriteClicked;
+
+                cout << "SpriteInfo: " << RectArray[SpriteInfo.RectNumber].x << ", " << RectArray[SpriteInfo.RectNumber].y << endl;
+
+                // Check if mouse's position is ontop of the texture.
+                if(IsSpriteClicked == true)
+                {
                     IsAnimationActive = true;
 
                     /*
@@ -327,19 +374,28 @@ int main(int argc, char **argv)
                     --x_direction;
                 }
             }
-
         }
 
         if(IsAnimationActive == true)
-        {
-            if(GameTick < Hello.size())
+        {   
+            // Start timing, using chrono (DEBUG)
+            time_point<steady_clock> start = steady_clock::now();
+            
+            if(PegJumpAnimationFrames.size() == 0)
+            {
+                // The values should be the current position of the selected peg. (!!!)
+                PegJumpAnimationFrames = PegJumpAnimation128(RectArray[SpriteInfo.RectNumber].x, RectArray[SpriteInfo.RectNumber].y);
+                cout << RectArray[SpriteInfo.RectNumber].x << ", " << RectArray[SpriteInfo.RectNumber].y << endl;
+            }
+
+            if(GameTick < PegJumpAnimationFrames.size())
             {   
                 // Rerender the background, so the top most pegs don't get "burned in" on the screen.
                 SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
                 SDL_RenderClear(renderer);
 
-                // Update RectArray to do animation
-                RectArray[2] = {Hello[GameTick][0], Hello[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
+                // Update RectArray to do animation [2] should be a variable: int SelectPeg (!!!)
+                RectArray[SpriteInfo.RectNumber] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
                 // Render the animation
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
@@ -348,6 +404,13 @@ int main(int argc, char **argv)
             else
             {
                 IsAnimationActive = false;
+
+                // Stop timing (DEBUG)
+                time_point<steady_clock> end = steady_clock::now();
+                duration<double, nano> fp_ns = end - start; 
+                cout << fp_ns.count() << " ns" << endl;
+
+                PegJumpAnimationFrames.clear();
             }
 
             GameTick++;
