@@ -32,7 +32,7 @@ int x_direction = 100;
 struct ClickedPeg
 {
     int RectNumber;
-    bool IsSpriteClicked;
+    bool IsPressed;
 };
 
 
@@ -111,9 +111,7 @@ ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
     {
         if(SDL_PointInRect(&MousePos, &RectArray[RectNumber]) == true)
         {
-            cout << RectNumber << endl;
-
-            returnVal.IsSpriteClicked = true;
+            returnVal.IsPressed = true;
             returnVal.RectNumber = RectNumber;
 
             return returnVal;
@@ -122,7 +120,7 @@ ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
         RectNumber++;
     }
 
-    returnVal.IsSpriteClicked = false;
+    returnVal.IsPressed = false;
     returnVal.RectNumber = -1;
 
     return returnVal;
@@ -194,10 +192,9 @@ int main(int argc, char **argv)
 
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
+
+    // Should be all 33 positions, 1 = populated, 0 = empty.
     vector<int> PegPositionArray = {1, 1, 1};
-
-
-
 
     // Push Rects to the RectArray
     RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
@@ -297,17 +294,13 @@ int main(int argc, char **argv)
 
             if ((SDL_MOUSEBUTTONDOWN == windowEvent.type) && (IsAnimationActive == false))
 			{  
-
-                // DEBUG !!!!!!!!
-                cout << MousePos.x << ", " << MousePos.y << endl;
-
                 // Reset the bool IsSpriteClicked.
                 IsSpriteClicked = false;
+
+                // Detect if any sprite was clicked, and return a struct with that information.
                 SpriteInfo = SpriteClickDetection(MousePos, RectArray);
 
-                IsSpriteClicked = SpriteInfo.IsSpriteClicked;
-
-                cout << "SpriteInfo: " << RectArray[SpriteInfo.RectNumber].x << ", " << RectArray[SpriteInfo.RectNumber].y << endl;
+                IsSpriteClicked = SpriteInfo.IsPressed;
 
                 // Check if mouse's position is ontop of the texture.
                 if(IsSpriteClicked == true)
@@ -385,7 +378,6 @@ int main(int argc, char **argv)
             {
                 // The values should be the current position of the selected peg. (!!!)
                 PegJumpAnimationFrames = PegJumpAnimation128(RectArray[SpriteInfo.RectNumber].x, RectArray[SpriteInfo.RectNumber].y);
-                cout << RectArray[SpriteInfo.RectNumber].x << ", " << RectArray[SpriteInfo.RectNumber].y << endl;
             }
 
             if(GameTick < PegJumpAnimationFrames.size())
@@ -410,6 +402,7 @@ int main(int argc, char **argv)
                 duration<double, nano> fp_ns = end - start; 
                 cout << fp_ns.count() << " ns" << endl;
 
+                // Clear the Stored Animation frames, so a new animation, with a new position can be used.
                 PegJumpAnimationFrames.clear();
             }
 
