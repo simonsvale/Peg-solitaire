@@ -240,11 +240,8 @@ int main(int argc, char **argv)
     // An array for determining how many times a texture should be used to make a sprite.
     vector<int> TextureAmountArray = {1, 1, int(RectArray.size()-2)};
 
-
-    // DEBUG!!!! Should take any Peg's current position.
-    // And needs two, since there is either 43 (129) or 42 (128) pixels between each peg
     vector<vector<int> > PegJumpAnimationFrames;
-  
+
     // Setup SDL variables
     SDL_Event windowEvent;
     SDL_Point MousePos;
@@ -377,7 +374,7 @@ int main(int argc, char **argv)
             if(PegJumpAnimationFrames.size() == 0)
             {
                 // The values should be the current position of the selected peg. (!!!)
-                PegJumpAnimationFrames = PegJumpAnimation128(RectArray[SpriteInfo.RectNumber].x, RectArray[SpriteInfo.RectNumber].y);
+                PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfo.RectNumber].x, RectArray[SpriteInfo.RectNumber].y);
             }
 
             if(GameTick < PegJumpAnimationFrames.size())
