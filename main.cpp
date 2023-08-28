@@ -1,6 +1,7 @@
 // Compilation settings
 // g++ -I src/include -L src/lib -o main main.cpp -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -mwindows -mconsole
 
+// Include necessary built-in header files
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -9,10 +10,9 @@
 #include <windows.h> 
 #include <chrono>
 
-// Include SDL2 headers
+// Include non built-in header files
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-
 
 // Include own header file(s)
 #include "animations.h"
@@ -20,13 +20,9 @@
 using namespace std;
 using namespace chrono;
 
-
+// Const char for holding the position of the textures.
 const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png", "textures/PegOutline.png"};
 const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
-
-// TEST CODE REMOVE
-int y_direction = 100;
-int x_direction = 100;
 
 // Struct for clicked peg return
 struct ClickedPeg
@@ -50,7 +46,7 @@ void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
 }
 
 
-// Loads surfaces from an image path
+// Function for loading a surface from an image path
 SDL_Surface *LoadSurface(const char *ImagePath)
 {   
     // Load image from given Path
@@ -59,7 +55,7 @@ SDL_Surface *LoadSurface(const char *ImagePath)
 }
 
 
-// Loads texture from a surface
+// Function for loading a texture from a surface
 SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
 {
     SDL_Texture *SurfaceTexture = SDL_CreateTextureFromSurface(renderer, Surface);
@@ -67,7 +63,7 @@ SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
 }
 
 
-// Renders everything
+// A function for rendering everything each time its called, can exclude textures
 void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr, ClickedPeg Peg)
 {   
     // Copy all loaded textures to the renderer (Overlays depends on the order of paths of the images), 
@@ -76,25 +72,27 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
     {      
         if(TextureAmountArr[TextureNumber] > 1)
         {   
-            for(int RenderAmount = 0; RenderAmount < TextureAmountArr[TextureNumber];)
+            for(int RenderNumber = 0; RenderNumber < TextureAmountArr[TextureNumber];)
             {
-                int RectAmount = RenderAmount+TextureNumber;
+                int RectAmount = RenderNumber+TextureNumber;
                 
                 // Iterate through each rect in that "Block" of the same texture defined by the TextureAmountArray.
                 SDL_Rect Rect[4] = {RectArr[RectAmount].x, RectArr[RectAmount].y, RectArr[RectAmount].w, RectArr[RectAmount].h};
 
-                if((Peg.IsSelected == true) && (RenderAmount == Peg.RectNumber-2))
+                // -2 because this lines up with the actual render number for the outlined peg.
+                if((Peg.IsSelected == true) && (RenderNumber == Peg.RectNumber-2))
                 {
                     // Render the selected peg texture / outlined peg.
                     SDL_RenderCopy(renderer, TextureArr[3], NULL, Rect);
                 }
                 else
                 {   
+                    // Render all other pegs.
                     // Iterate through the Textures and their corrosponding SDL_Rects, defining their size on the screen.
                     SDL_RenderCopy(renderer, TextureArr[TextureNumber], NULL, Rect);
                 }
 
-                RenderAmount++;
+                RenderNumber++;
             }
         }
         else
@@ -111,12 +109,15 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
 // Function for detecting when a sprite is clicked.
 ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
 {
+    // Struct for holding IsSelected (bool) and RectNumber (int)
     ClickedPeg returnVal;
 
     for(int RectNumber = 2; RectNumber < RectArray.size();)
     {
+        // Take mouse pos and see if it is inside the boundary of any peg sprite.
         if(SDL_PointInRect(&MousePos, &RectArray[RectNumber]) == true)
         {
+            // If is is set the structs members to the correct information.
             returnVal.IsSelected = true;
             returnVal.RectNumber = RectNumber;
 
@@ -126,13 +127,17 @@ ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
         RectNumber++;
     }
 
+    // If the mouse position is not set them to the following:
     returnVal.IsSelected = false;
+
+    // -1 because it will never be used otherwise, since the RectNumber's range can only be from 0 to x.
     returnVal.RectNumber = -1;
 
     return returnVal;
 }
 
 
+// Main function
 int main(int argc, char **argv) 
 {   
     // For determining if the window is minimized or not.
@@ -141,15 +146,15 @@ int main(int argc, char **argv)
     // Create the game tick variable.
     int GameTick = 0;
 
-
     // To make sure peg animations don't happen at the same time.
     bool IsAnimationActive = false;
 
     // Bool for when a position for the clicked peg is selected.
     bool IsJumpPositionSelected = false;
 
-    
+    // Bool for determining if the window is in fullscreen mode
     bool IsFullscreen = false;
+
 
     // For storing the actual images, that are used as textures.
     SDL_Surface *SurfaceArray[ImagePathArraySize];
@@ -162,7 +167,6 @@ int main(int argc, char **argv)
     // initialize SDL window and renderer
     SDL_Init(SDL_INIT_EVERYTHING);
 
-
     // Throws an error in the VS IDE, but somehow it still works...
     SDL_DisplayMode DisplaySize;
     SDL_GetCurrentDisplayMode(0, &DisplaySize);
@@ -172,7 +176,6 @@ int main(int argc, char **argv)
     int HEIGHT = DisplaySize.h/1.4;
     vector<int> ScreenResolution = {WIDTH, HEIGHT};
 
-
     // Create the SDL window and set its title
     SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI, &window, &renderer);
     SDL_SetWindowTitle(window, "Peg Solitaire");
@@ -180,14 +183,14 @@ int main(int argc, char **argv)
 
     if (NULL == window)
     {
-        std::cout << "Could not create window" << SDL_GetError() << std::endl;
+        cout << "Could not create window" << SDL_GetError() << endl;
         return 1;
     }
     
-
     // Create surfaces and textures and store them in ararys
     for(int ImagePathNumber = 0; ImagePathNumber <= ImagePathArraySize-1;)
     {
+        // Load the surfaces and textures.
         SDL_Surface *Surface = LoadSurface(ImagePathArray[ImagePathNumber]);
         SDL_Texture *Texture = LoadTexture(Surface, renderer);
 
@@ -208,10 +211,11 @@ int main(int argc, char **argv)
     RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
     RectArray.push_back({0, -80, WIDTH, WIDTH}); // board texture rect
 
+    // Setup positions
     vector<int> PegSetupX = {73, 202, 330, 458, 587, 715, 843};
     vector<int> PegSetupY = {4, 94, 184, 278, 371, 461, 551};
 
-    // Create 7x7 pegs
+    // Create the board of 7x7 pegs.
     for(int PegPosX = 0; PegPosX < 7;)
     {
         for(int PegPosY = 0; PegPosY < 7;)
@@ -224,10 +228,7 @@ int main(int argc, char **argv)
         PegPosX++;
     }
 
-    // Remove the pegs that should not be there and end up with 32.
-    // In the future a bigger board could be added. !!!
-
-    // Remove pins on the left
+    // Remove pins outside the board on the left
     RectArray.erase(RectArray.begin()+2, RectArray.begin()+4);
     RectArray.erase(RectArray.begin()+5, RectArray.begin()+9);
     RectArray.erase(RectArray.begin()+8, RectArray.begin()+10);
@@ -235,7 +236,7 @@ int main(int argc, char **argv)
     // Remove middle pin
     RectArray.erase(RectArray.begin()+18);
 
-    // Remove pins on the right
+    // Remove pins outside the board on the right
     RectArray.erase(RectArray.end()-2, RectArray.end());
     RectArray.erase(RectArray.end()-7, RectArray.end()-3);
     RectArray.erase(RectArray.end()-8, RectArray.end()-6);
@@ -244,11 +245,14 @@ int main(int argc, char **argv)
     // An array for determining how many times a texture should be used to make a sprite.
     vector<int> TextureAmountArray = {1, 1, int(RectArray.size()-2)};
 
+    // A vector for holding the frames of an animation
     vector<vector<int> > PegJumpAnimationFrames;
 
     // Setup SDL variables
     SDL_Event windowEvent;
     SDL_Point MousePos;
+
+    // Setup Struct
     ClickedPeg SpriteInfo; SpriteInfo.IsSelected = false; SpriteInfo.RectNumber = -1;
 
 
@@ -267,9 +271,9 @@ int main(int argc, char **argv)
         SDL_GetMouseState(&MousePos.x, &MousePos.y);
         int WindowFlag = SDL_GetWindowFlags(window);
 
-        /* If the window gains focus render everything again.
+        /* If the window gains focus, render everything again.
         Works flawlessly except for the edgecase where the taskbar makes 
-        SDL_GetWindowFlags() think the window is hidden since the taskbar is alway ontop.*/
+        SDL_GetWindowFlags() think the window is hidden, since the taskbar is alway ontop.*/
         if((WindowFlag == 8260) || (IsWindowActive == false))
         {
             IsWindowActive = false;
@@ -295,28 +299,26 @@ int main(int argc, char **argv)
 
             if ((SDL_MOUSEBUTTONDOWN == windowEvent.type) && (IsAnimationActive == false))
 			{  
-                // Detect if any sprite was clicked, and return a struct with that information.
+                // Detect if any sprite was clicked/selected, and return a struct with that information.
                 SpriteInfo = SpriteClickDetection(MousePos, RectArray);
             }
 
+            // Check if a sprite was selected.
             if(SpriteInfo.IsSelected == true)
             {
+                // Check if a jump position have been set.
                 if(IsJumpPositionSelected == true)
                 {
+                    // Set animation bool to true.
                     IsAnimationActive = true;
                 }
 
-                    /*
-                        3. Change the bool IsPegSelected to True.
-                    */
                 /* 4. Run function: GetPossibleMoves(), returns an array with possible moves as Rects.
                    5. If statement to check if any possible moves have been selected using SDL_PointInRect(&MousePos, &PegRect),
                       but comparing it to the Rects from the GetPossibleMoves() function.
                    6. Run the AnimationCall Function, for the selected Peg. Update Peg to its new position.
                 */
-                
             }
-
 
             // handle keyboard input
             if (SDL_KEYDOWN == windowEvent.type)
@@ -336,7 +338,7 @@ int main(int argc, char **argv)
                     }
                 }                
 
-                // y direction
+                // DEBUG for JumpPosSelection
                 if (windowEvent.key.keysym.sym == SDLK_s)
                 {
                     IsJumpPositionSelected = true;
@@ -344,6 +346,7 @@ int main(int argc, char **argv)
             }
         }
 
+        // Check if a peg have been selected
         if(SpriteInfo.IsSelected == true)
         {   
             if(IsJumpPositionSelected == false)
@@ -353,8 +356,9 @@ int main(int argc, char **argv)
                 SDL_RenderPresent(renderer);
             }
             
+            // If a JumpPos have been selected then the animation
             if((IsAnimationActive == true) && (IsJumpPositionSelected == true))
-            {
+            {   
                 // Start timing, using chrono (DEBUG)
                 time_point<steady_clock> start = steady_clock::now();
 
@@ -364,6 +368,7 @@ int main(int argc, char **argv)
                     PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfo.RectNumber].x, RectArray[SpriteInfo.RectNumber].y);
                 }
 
+                // Run through the frames of the animation
                 if(GameTick < PegJumpAnimationFrames.size())
                 {   
                     // Rerender the background, so the top most pegs don't get "burned in" on the screen.
@@ -379,6 +384,7 @@ int main(int argc, char **argv)
                 }
                 else
                 {
+                    // Reset bools
                     IsAnimationActive = false;
                     IsJumpPositionSelected = false;
 
@@ -395,7 +401,7 @@ int main(int argc, char **argv)
             }
         }
         
-        // Set Gametick to zero again so the next event can happen
+        // Set Gametick to zero again so the next event or animation can happen
         if(IsAnimationActive == false)
         {
             GameTick = 0;
