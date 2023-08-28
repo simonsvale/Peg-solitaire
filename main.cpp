@@ -21,7 +21,7 @@ using namespace std;
 using namespace chrono;
 
 
-const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png"};
+const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png", "textures/PegOutline.png"};
 const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 
 // TEST CODE REMOVE
@@ -68,13 +68,11 @@ SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
 
 
 // Renders everything
-void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr)
+void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr, ClickedPeg Peg)
 {   
-    // Get size of RectArr, this is necessary since we need to render the peg image multiple times.
-    int RectArrSize = RectArr.size();
-
-    // Copy all loaded textures to the renderer (Overlays depends on the order of paths of the images)
-    for(int TextureNumber = 0; TextureNumber < ImagePathArraySize;)
+    // Copy all loaded textures to the renderer (Overlays depends on the order of paths of the images), 
+    // -1 is because this is the amount of images from the ImagePathArray we do not won't to render.
+    for(int TextureNumber = 0; TextureNumber < ImagePathArraySize-1;)
     {      
         if(TextureAmountArr[TextureNumber] > 1)
         {   
@@ -85,8 +83,16 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
                 // Iterate through each rect in that "Block" of the same texture defined by the TextureAmountArray.
                 SDL_Rect Rect[4] = {RectArr[RectAmount].x, RectArr[RectAmount].y, RectArr[RectAmount].w, RectArr[RectAmount].h};
 
-                // Iterate through the Textures and their corrosponding SDL_Rects, defining their size on the screen.
-                SDL_RenderCopy(renderer, TextureArr[TextureNumber], NULL, Rect);
+                if((Peg.IsPressed == true) && (RenderAmount == Peg.RectNumber-2))
+                {
+                    // Render the selected peg texture / outlined peg.
+                    SDL_RenderCopy(renderer, TextureArr[3], NULL, Rect);
+                }
+                else
+                {   
+                    // Iterate through the Textures and their corrosponding SDL_Rects, defining their size on the screen.
+                    SDL_RenderCopy(renderer, TextureArr[TextureNumber], NULL, Rect);
+                }
 
                 RenderAmount++;
             }
@@ -200,12 +206,8 @@ int main(int argc, char **argv)
     RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
     RectArray.push_back({0, -80, WIDTH, WIDTH}); // board texture rect
 
-    // A vector for holding Integers determining the spacing between pegs.
-    vector<vector<int> > BoardConfigurationArray = {{129}, {60, 63}};
-
     vector<int> PegSetupX = {73, 202, 330, 458, 587, 715, 843};
-    vector<int> PegSetupY = {4, 93, 183, 277, 370, 460, 550};
-
+    vector<int> PegSetupY = {4, 94, 184, 278, 371, 461, 551};
 
     // Create 7x7 pegs
     for(int PegPosX = 0; PegPosX < 7;)
@@ -245,7 +247,7 @@ int main(int argc, char **argv)
     // Setup SDL variables
     SDL_Event windowEvent;
     SDL_Point MousePos;
-    ClickedPeg SpriteInfo;
+    ClickedPeg SpriteInfo; SpriteInfo.IsPressed = false; SpriteInfo.RectNumber = -1;
 
 
     // Set background color
@@ -253,7 +255,7 @@ int main(int argc, char **argv)
     SDL_RenderClear(renderer);
     
     // Initial renderer
-    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
+    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
     SDL_RenderPresent(renderer);
 
     // Game loop
@@ -277,7 +279,7 @@ int main(int argc, char **argv)
                 SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
                 SDL_RenderClear(renderer);
 
-                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
+                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
                 SDL_RenderPresent(renderer);
             }
         }
@@ -302,6 +304,7 @@ int main(int argc, char **argv)
                 // Check if mouse's position is ontop of the texture.
                 if(IsSpriteClicked == true)
                 {
+
                     IsAnimationActive = true;
 
                     /*
@@ -387,7 +390,7 @@ int main(int argc, char **argv)
                 RectArray[SpriteInfo.RectNumber] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
                 // Render the animation
-                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray);
+                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
                 SDL_RenderPresent(renderer);
             }
             else
