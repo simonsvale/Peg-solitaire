@@ -64,20 +64,32 @@ SDL_Texture *LoadTexture(SDL_Surface *Surface, SDL_Renderer *renderer)
 
 
 // A function for rendering everything each time its called, can exclude textures
-void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr, ClickedPeg Peg)
+void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<SDL_Rect> RectArr, vector<int> TextureAmountArr, ClickedPeg Peg, int ArraySum)
 {   
     // Copy all loaded textures to the renderer (Overlays depends on the order of paths of the images), 
     // -1 is because this is the amount of images from the ImagePathArray we do not won't to render.
+    int FromPosArraySum = 0;
+    int FromPos;
+
     for(int TextureNumber = 0; TextureNumber < ImagePathArraySize-1;)
     {      
         if(TextureAmountArr[TextureNumber] > 1)
         {   
+            FromPos = TextureNumber;
+            FromPosArraySum = 0;
+
+            for(; FromPos < TextureAmountArr.size();)
+            {   
+                FromPosArraySum += TextureAmountArr[FromPos];
+                FromPos++;
+            }
+
             for(int RenderNumber = 0; RenderNumber < TextureAmountArr[TextureNumber];)
             {   
-                int RectAmount = TextureAmountArr[TextureNumber-1]+TextureNumber+RenderNumber-1;
+                int RectPos = ArraySum - FromPosArraySum + RenderNumber;
 
                 // Iterate through each rect in that "Block" of the same texture defined by the TextureAmountArray.
-                SDL_Rect Rect[4] = {RectArr[RectAmount].x, RectArr[RectAmount].y, RectArr[RectAmount].w, RectArr[RectAmount].h};
+                SDL_Rect Rect[4] = {RectArr[RectPos].x, RectArr[RectPos].y, RectArr[RectPos].w, RectArr[RectPos].h};
 
                 // -2 because this lines up with the actual render number for the outlined peg.
                 if((Peg.IsSelected == true) && (RenderNumber == Peg.RectNumber-2) && (TextureNumber == 2))
@@ -242,14 +254,22 @@ int main(int argc, char **argv)
     RectArray.erase(RectArray.end()-8, RectArray.end()-6);
 
     // Create the 4 possible holes to select
-    for(int xVal = 0; xVal < 3;)
+    for(int xVal = 0; xVal < 4;)
     {
-        RectArray.push_back({xVal*10+100, 100, int(WIDTH/22.1), int(WIDTH/22.1)});
+        RectArray.push_back({xVal*60+100, 200, int(WIDTH/22.1), int(WIDTH/22.1/2)});
         xVal++;
     }
 
     // An array for determining how many times a texture should be used to make a sprite.
     vector<int> TextureAmountArray = {1, 1, 32, 4};
+
+    int ArraySum = 0;
+
+    for(int ArrayIndex = 0; ArrayIndex < TextureAmountArray.size();)
+    {
+        ArraySum += TextureAmountArray[ArrayIndex];
+        ArrayIndex++;
+    }
 
     // A vector for holding the frames of an animation
     vector<vector<int> > PegJumpAnimationFrames;
@@ -266,7 +286,7 @@ int main(int argc, char **argv)
     SDL_RenderClear(renderer);
     
     // Initial renderer
-    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
+    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
     SDL_RenderPresent(renderer);
 
     // Game loop
@@ -290,7 +310,7 @@ int main(int argc, char **argv)
                 SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
                 SDL_RenderClear(renderer);
 
-                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
+                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                 SDL_RenderPresent(renderer);
             }
         }
@@ -361,7 +381,7 @@ int main(int argc, char **argv)
             if(IsJumpPositionSelected == false)
             {
                 // Render selected peg with outline
-                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
+                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                 SDL_RenderPresent(renderer);
             }
             
@@ -389,7 +409,7 @@ int main(int argc, char **argv)
                     RectArray[SpriteInfo.RectNumber] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
                     // Render the animation
-                    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
+                    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                     SDL_RenderPresent(renderer);
                 }
                 else
@@ -413,7 +433,7 @@ int main(int argc, char **argv)
 
         if(SpriteInfo.RectNumber == -1)
         {
-            RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
+            RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
             SDL_RenderPresent(renderer);
 
 
