@@ -158,6 +158,7 @@ int main(int argc, char **argv)
 
     // Create the game tick variable.
     int GameTick = 0;
+    int OutlineTick = 0;
 
     // To make sure peg animations don't happen at the same time.
     bool IsAnimationActive = false;
@@ -261,7 +262,7 @@ int main(int argc, char **argv)
     // Create the 4 possible holes to select
     for(int XVal = 0; XVal < 4;)
     {
-        RectArray.push_back({PegSetupX[XVal], PegSetupY[XVal]-38, int(WIDTH/22.1), int(WIDTH/22.1/1.25)});
+        RectArray.push_back({PegSetupX[XVal]+128, PegSetupY[XVal]-38+100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)});
         XVal++;
     }
 
@@ -335,14 +336,12 @@ int main(int argc, char **argv)
             }
 
             // Check if a sprite was selected.
-            if((SpriteInfo.IsSelected == true))
-            {
-                PreviousRectNumber.push_back(SpriteInfo.RectNumber);
-
-                if(SpriteInfo.RectNumber != PreviousRectNumber[0])
-                {
+            if(SpriteInfo.IsSelected == true)
+            {   
+                if((OutlineTick == 0) || (SpriteInfo.RectNumber != PreviousRectNumber.back()))
+                {   
                     IsOutlineRendered = false;
-                    PreviousRectNumber.clear();
+                    OutlineTick++;
                 }
 
                 // Check if a jump position have been set.
@@ -352,15 +351,8 @@ int main(int argc, char **argv)
                     IsAnimationActive = true;
                 }
 
-                /* 4. Run function: GetPossibleMoves(), returns an array with possible moves as Rects.
-                   5. If statement to check if any possible moves have been selected using SDL_PointInRect(&MousePos, &PegRect),
-                      but comparing it to the Rects from the GetPossibleMoves() function.
-                   6. Run the AnimationCall Function, for the selected Peg. Update Peg to its new position.
-                */
-            }
-            else
-            {
-
+                PreviousRectNumber.clear();
+                PreviousRectNumber.push_back(SpriteInfo.RectNumber);
             }
 
             // handle keyboard input
@@ -447,10 +439,14 @@ int main(int argc, char **argv)
         }
 
         if(SpriteInfo.RectNumber == -1)
-        {
+        {   
+            if(OutlineTick != 0)
+            {   
+                OutlineTick = 0;
+            }
+
             RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
             SDL_RenderPresent(renderer);
-
 
             SpriteInfo.IsSelected = false;
             SpriteInfo.RectNumber = -2;
