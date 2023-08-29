@@ -259,15 +259,16 @@ int main(int argc, char **argv)
     RectArray.erase(RectArray.end()-8, RectArray.end()-6);
 
     // Create the 4 possible holes to select
-    for(int xVal = 0; xVal < 4;)
+    for(int XVal = 0; XVal < 4;)
     {
-        RectArray.push_back({xVal*60+100, 200, int(WIDTH/22.1), int(WIDTH/22.1/2)});
-        xVal++;
+        RectArray.push_back({PegSetupX[XVal], PegSetupY[XVal]-38, int(WIDTH/22.1), int(WIDTH/22.1/1.25)});
+        XVal++;
     }
 
     // An array for determining how many times a texture should be used to make a sprite.
     vector<int> TextureAmountArray = {1, 1, 32, 4};
 
+    // Calculate the total amount of all textures in the TextureAmountArray.
     int ArraySum = 0;
 
     for(int ArrayIndex = 0; ArrayIndex < TextureAmountArray.size();)
@@ -410,7 +411,6 @@ int main(int argc, char **argv)
                 {
                     // The values should be the current position of the selected peg. (!!!)
                     PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfo.RectNumber].x, RectArray[SpriteInfo.RectNumber].y);
-                    cout << SpriteInfo.RectNumber << endl;
                 }
 
                 // Run through the frames of the animation
