@@ -71,6 +71,9 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
     int FromPosArraySum = 0;
     int FromPos;
 
+    // DEBUG
+    cout << "Rendering" << endl;
+
     for(int TextureNumber = 0; TextureNumber < ImagePathArraySize-1;)
     {      
         if(TextureAmountArr[TextureNumber] > 1)
@@ -78,6 +81,7 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
             FromPos = TextureNumber;
             FromPosArraySum = 0;
 
+            // Calculate the FromPosArraySum, used to determine the position of the correct Rect in the RectArray
             for(; FromPos < TextureAmountArr.size();)
             {   
                 FromPosArraySum += TextureAmountArr[FromPos];
@@ -163,6 +167,10 @@ int main(int argc, char **argv)
 
     // Bool for when a position for the clicked peg is selected.
     bool IsJumpPositionSelected = false;
+
+    // Bool for determining if the selected peg outline have been rendered.
+    bool IsOutlineRendered = false;
+    vector<int> PreviousRectNumber;
 
     // Bool for determining if the window is in fullscreen mode
     bool IsFullscreen = false;
@@ -331,6 +339,14 @@ int main(int argc, char **argv)
             // Check if a sprite was selected.
             if((SpriteInfo.IsSelected == true))
             {
+                PreviousRectNumber.push_back(SpriteInfo.RectNumber);
+
+                if(SpriteInfo.RectNumber != PreviousRectNumber[0])
+                {
+                    IsOutlineRendered = false;
+                    PreviousRectNumber.clear();
+                }
+
                 // Check if a jump position have been set.
                 if(IsJumpPositionSelected == true)
                 {
@@ -378,11 +394,13 @@ int main(int argc, char **argv)
         // Check if a peg have been selected
         if(SpriteInfo.IsSelected == true)
         {   
-            if(IsJumpPositionSelected == false)
+            if((IsJumpPositionSelected == false) && (IsOutlineRendered == false))
             {
                 // Render selected peg with outline
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                 SDL_RenderPresent(renderer);
+
+                IsOutlineRendered = true;
             }
             
             // If a JumpPos have been selected then the animation
