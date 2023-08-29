@@ -21,7 +21,7 @@ using namespace std;
 using namespace chrono;
 
 // Const char for holding the position of the textures.
-const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png", "textures/PegOutline.png"};
+const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png", "textures/HoleSelect.png", "textures/PegOutline.png"};
 const int ImagePathArraySize = (*(&ImagePathArray + 1) - ImagePathArray);
 
 // Struct for clicked peg return
@@ -73,17 +73,17 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
         if(TextureAmountArr[TextureNumber] > 1)
         {   
             for(int RenderNumber = 0; RenderNumber < TextureAmountArr[TextureNumber];)
-            {
-                int RectAmount = RenderNumber+TextureNumber;
-                
+            {   
+                int RectAmount = TextureAmountArr[TextureNumber-1]+TextureNumber+RenderNumber-1;
+
                 // Iterate through each rect in that "Block" of the same texture defined by the TextureAmountArray.
                 SDL_Rect Rect[4] = {RectArr[RectAmount].x, RectArr[RectAmount].y, RectArr[RectAmount].w, RectArr[RectAmount].h};
 
                 // -2 because this lines up with the actual render number for the outlined peg.
-                if((Peg.IsSelected == true) && (RenderNumber == Peg.RectNumber-2))
+                if((Peg.IsSelected == true) && (RenderNumber == Peg.RectNumber-2) && (TextureNumber == 2))
                 {
                     // Render the selected peg texture / outlined peg.
-                    SDL_RenderCopy(renderer, TextureArr[3], NULL, Rect);
+                    SDL_RenderCopy(renderer, TextureArr[4], NULL, Rect);
                 }
                 else
                 {   
@@ -112,7 +112,7 @@ ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
     // Struct for holding IsSelected (bool) and RectNumber (int)
     ClickedPeg returnVal;
 
-    for(int RectNumber = 2; RectNumber < RectArray.size();)
+    for(int RectNumber = 2; RectNumber < RectArray.size()-3;)
     {
         // Take mouse pos and see if it is inside the boundary of any peg sprite.
         if(SDL_PointInRect(&MousePos, &RectArray[RectNumber]) == true)
@@ -241,9 +241,15 @@ int main(int argc, char **argv)
     RectArray.erase(RectArray.end()-7, RectArray.end()-3);
     RectArray.erase(RectArray.end()-8, RectArray.end()-6);
 
+    // Create the 4 possible holes to select
+    for(int xVal = 0; xVal < 3;)
+    {
+        RectArray.push_back({xVal*10+100, 100, int(WIDTH/22.1), int(WIDTH/22.1)});
+        xVal++;
+    }
 
     // An array for determining how many times a texture should be used to make a sprite.
-    vector<int> TextureAmountArray = {1, 1, int(RectArray.size()-2)};
+    vector<int> TextureAmountArray = {1, 1, 32, 4};
 
     // A vector for holding the frames of an animation
     vector<vector<int> > PegJumpAnimationFrames;
@@ -254,7 +260,6 @@ int main(int argc, char **argv)
 
     // Setup Struct
     ClickedPeg SpriteInfo; SpriteInfo.IsSelected = false; SpriteInfo.RectNumber = -1;
-
 
     // Set background color
     SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
@@ -301,7 +306,6 @@ int main(int argc, char **argv)
 			{  
                 // Detect if any sprite was clicked/selected, and return a struct with that information.
                 SpriteInfo = SpriteClickDetection(MousePos, RectArray);
-                cout << SpriteInfo.IsSelected << ", " << SpriteInfo.RectNumber << endl;
             }
 
             // Check if a sprite was selected.
@@ -371,6 +375,7 @@ int main(int argc, char **argv)
                 {
                     // The values should be the current position of the selected peg. (!!!)
                     PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfo.RectNumber].x, RectArray[SpriteInfo.RectNumber].y);
+                    cout << SpriteInfo.RectNumber << endl;
                 }
 
                 // Run through the frames of the animation
@@ -411,7 +416,10 @@ int main(int argc, char **argv)
             RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
             SDL_RenderPresent(renderer);
 
+
+            SpriteInfo.IsSelected = false;
             SpriteInfo.RectNumber = -2;
+            IsJumpPositionSelected = false;
         }
         
         // Set Gametick to zero again so the next event or animation can happen
