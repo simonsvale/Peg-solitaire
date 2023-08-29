@@ -301,10 +301,11 @@ int main(int argc, char **argv)
 			{  
                 // Detect if any sprite was clicked/selected, and return a struct with that information.
                 SpriteInfo = SpriteClickDetection(MousePos, RectArray);
+                cout << SpriteInfo.IsSelected << ", " << SpriteInfo.RectNumber << endl;
             }
 
             // Check if a sprite was selected.
-            if(SpriteInfo.IsSelected == true)
+            if((SpriteInfo.IsSelected == true))
             {
                 // Check if a jump position have been set.
                 if(IsJumpPositionSelected == true)
@@ -318,6 +319,10 @@ int main(int argc, char **argv)
                       but comparing it to the Rects from the GetPossibleMoves() function.
                    6. Run the AnimationCall Function, for the selected Peg. Update Peg to its new position.
                 */
+            }
+            else
+            {
+
             }
 
             // handle keyboard input
@@ -399,6 +404,14 @@ int main(int argc, char **argv)
 
                 GameTick++;
             }
+        }
+
+        if(SpriteInfo.RectNumber == -1)
+        {
+            RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo);
+            SDL_RenderPresent(renderer);
+
+            SpriteInfo.RectNumber = -2;
         }
         
         // Set Gametick to zero again so the next event or animation can happen
