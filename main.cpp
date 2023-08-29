@@ -71,9 +71,6 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
     int FromPosArraySum = 0;
     int FromPos;
 
-    // DEBUG
-    cout << "Rendering" << endl;
-
     for(int TextureNumber = 0; TextureNumber < ImagePathArraySize-1;)
     {      
         if(TextureAmountArr[TextureNumber] > 1)
