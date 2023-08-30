@@ -33,10 +33,10 @@ struct ClickedPeg
 
 struct PossibleMoves
 {
-    bool Up;
-    bool Down;
-    bool Right;
-    bool Left;
+    bool Up = false;
+    bool Down = false;
+    bool Right = false;
+    bool Left = false;
 };
 
 
@@ -234,11 +234,20 @@ int main(int argc, char **argv)
         ImagePathNumber++;
     }
 
+    // All 33 positions, 1 = populated, 0 = empty.
+    vector<int> BoardLayout = {1, 1, 1, 
+                               1, 1, 1, 
+                         1, 1, 1, 1, 1, 1, 1, 
+                         1, 1, 1, 0, 1, 1, 1, 
+                         1, 1, 1, 1, 1, 1, 1, 
+                               1, 1, 1, 
+                               1, 1, 1};
+
+    // Struct for storing possible moves when selecting a peg.
+    PossibleMoves SelectedPegMoves;
+
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
-
-    // Should be all 33 positions, 1 = populated, 0 = empty.
-    vector<int> PegPositionArray = {1, 1, 1};
 
     // Push Rects to the RectArray
     RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
@@ -311,7 +320,7 @@ int main(int argc, char **argv)
     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
     SDL_RenderPresent(renderer);
 
-    // Game loop
+    // Main loop
     while (true)
     {
         // Get mouse postion and window flag
@@ -406,6 +415,11 @@ int main(int argc, char **argv)
                 SDL_RenderPresent(renderer);
 
                 IsOutlineRendered = true;
+            }
+
+            if(IsJumpPositionSelected == false)
+            {
+                SelectedPegMoves = GetPossibleMoves(SpriteInfo.RectNumber, BoardLayout);
             }
             
             // If a JumpPos have been selected then the animation
