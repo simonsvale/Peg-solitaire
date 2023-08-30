@@ -160,8 +160,9 @@ ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
 // Function for getting the possible moves for the selected peg.
 PossibleMoves GetPossibleMoves(int PegRectNumber, vector<int> CurrentBoardLayout)
 {
+    PossibleMoves Moves;
 
-    return;
+    return Moves;
 }
 
 
