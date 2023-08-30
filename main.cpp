@@ -31,6 +31,14 @@ struct ClickedPeg
     bool IsSelected;
 };
 
+struct PossibleMoves
+{
+    bool Up;
+    bool Down;
+    bool Right;
+    bool Left;
+};
+
 
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
@@ -147,6 +155,13 @@ ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
     returnVal.RectNumber = -1;
 
     return returnVal;
+}
+
+// Function for getting the possible moves for the selected peg.
+PossibleMoves GetPossibleMoves(int PegRectNumber, vector<int> CurrentBoardLayout)
+{
+
+    return;
 }
 
 
