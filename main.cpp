@@ -363,6 +363,7 @@ int main(int argc, char **argv)
             // Check if a sprite was selected.
             if(SpriteInfo.IsSelected == true)
             {   
+                // To not spam the rendering function, check if the previous mouse click was deselecting the (Not same) peg or the outline tick is 0, then render
                 if((OutlineTick == 0) || (SpriteInfo.RectNumber != PreviousRectNumber.back()))
                 {   
                     IsOutlineRendered = false;
@@ -420,7 +421,10 @@ int main(int argc, char **argv)
 
             if(IsJumpPositionSelected == false)
             {
+                // Get the possible moves.
                 SelectedPegMoves = GetPossibleMoves(SpriteInfo.RectNumber, BoardLayout);
+
+                // Update board layout.
             }
             
             // If a JumpPos have been selected then the animation
@@ -468,6 +472,8 @@ int main(int argc, char **argv)
             }
         }
 
+        // To not spam the rendering funtion, check if no peg is selected, 
+        // this will only happen once since the SpriteInfo.RectNumber is set to -2.
         if(SpriteInfo.RectNumber == -1)
         {   
             if(OutlineTick != 0)
