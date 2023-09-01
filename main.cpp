@@ -31,15 +31,6 @@ struct ClickedPeg
     bool IsSelected;
 };
 
-struct PossibleMoves
-{
-    bool Up = false;
-    bool Down = false;
-    bool Right = false;
-    bool Left = false;
-};
-
-
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
 {      
@@ -158,9 +149,37 @@ ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
 }
 
 // Function for getting the possible moves for the selected peg.
-PossibleMoves GetPossibleMoves(int PegRectNumber, vector<int> CurrentBoardLayout)
+vector<bool> GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
 {
-    PossibleMoves Moves;
+    vector<bool> Moves = {false, false, false, false};
+
+    int Pos = PegPosition;
+
+    vector<int> CheckPegLocations = {PegPosition-1, PegPosition+1, PegPosition+7, PegPosition-7};
+    vector<int> CheckEmptyLocations = {PegPosition-2, PegPosition+2, PegPosition+14, PegPosition-14};
+
+    for(int Count = 0; Count < 4;)
+    {
+        // Check if there is a peg on each side of the selected peg
+        if(CurrentBoardLayout[CheckPegLocations[Count]] == 1)
+        {
+            // If there is check if there is an empty space beside that peg.
+            if(CurrentBoardLayout[CheckEmptyLocations[Count]] == 0)
+            {
+                Moves[Count] = true;
+            }
+            else
+            {
+                Moves[Count] = false;
+            }
+        }
+        else
+        {
+            Moves[Count] = false;
+        }
+
+        Count++;
+    }
 
     return Moves;
 }
@@ -236,16 +255,25 @@ int main(int argc, char **argv)
     }
 
     // All 33 positions, 1 = populated, 0 = empty.
-    vector<int> BoardLayout = {1, 1, 1, 
-                               1, 1, 1, 
-                         1, 1, 1, 1, 1, 1, 1, 
-                         1, 1, 1, 0, 1, 1, 1, 
-                         1, 1, 1, 1, 1, 1, 1, 
-                               1, 1, 1, 
-                               1, 1, 1};
+    vector<int> BoardLayout = {-1, -1, 1, 1, 1, -1, -1,
+                               -1, -1, 1, 1, 1, -1, -1,
+                                 1, 1, 1, 1, 1, 1, 1, 
+                                 1, 1, 1, 0, 1, 1, 1, 
+                                 1, 1, 1, 1, 1, 1, 1, 
+                               -1, -1, 1, 1, 1, -1, -1,
+                               -1, -1, 1, 1, 1, -1, -1};
 
-    // Struct for storing possible moves when selecting a peg.
-    PossibleMoves SelectedPegMoves;
+    // Struct for storing possible moves when selecting a peg. 
+    //                               North, South, East,  West
+    vector<bool> SelectedPegMoves = {false, false, false, false};
+
+    vector<bool> test = GetPossibleMoves(17, BoardLayout);
+
+    for(int count = 0; count < 4;)
+    {
+        cout << test[count] << endl;
+        count++;
+    }
 
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
