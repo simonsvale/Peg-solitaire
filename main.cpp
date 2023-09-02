@@ -153,60 +153,90 @@ vector<bool> GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
 {
     vector<bool> Moves = {false, false, false, false};
 
-    int Pos = PegPosition;
+    const int BoardSize = CurrentBoardLayout.size();
 
-    vector<int> CheckPegLocations = {PegPosition-1, PegPosition+1, PegPosition+7, PegPosition-7};
-    vector<int> CheckEmptyLocations = {PegPosition-2, PegPosition+2, PegPosition+14, PegPosition-14};
-
-    // !!!!!!!!!!!!!!!!!!!
-    // To check if we have reached a side divide the peg position with (PegPosition+1)/7 == 1 limit the east direction
-    // to check west, do the same but check for (PegPosition+1)/7
-    // Probably use modulus instead
-
-    // If the position is on the side of the board.
-    int EastSideCheck = (PegPosition + 1) % 7;
-
-    cout << "SideCheck: " << EastSideCheck << endl;
-
-    if(5 > PegPosition)
-    {
-        cout << PegPosition << endl;
-    }
-    else if((PegPosition >= 5) && (8 > PegPosition))
+    // Set the correct index for the CurrentBoardLayout for the PegPosition taken from the RectArray.
+    if((PegPosition >= 5) && (8 > PegPosition))
     {
         PegPosition += 4;
-        cout << PegPosition << endl;
     }
     else if((PegPosition >= 8) && (18 > PegPosition))
     {   
         PegPosition += 6;
-        cout << PegPosition << endl;
     }
-    else if((PegPosition >= 18) && (27 > PegPosition))
+    else if((PegPosition >= 18) && (28 > PegPosition))
     {   
         PegPosition += 7;
-        cout << PegPosition << endl;
+    }
+    else if((PegPosition >= 28) && (31 > PegPosition))
+    {   
+        PegPosition += 9;
+    }
+    else if((PegPosition >= 31) && (34 > PegPosition))
+    {   
+        PegPosition += 13;
     }
 
+    //                               North,         South,         East,          West
+    vector<int> CheckPegLocations = {PegPosition-7, PegPosition+7, PegPosition+1, PegPosition-1};
+    vector<int> CheckEmptyLocations = {PegPosition-14, PegPosition+14, PegPosition+2, PegPosition-2};
+
     for(int Count = 0; Count < 4;)
-    {
+    {   
+    
         // Check if there is a peg on each side of the selected peg
         if(CurrentBoardLayout[CheckPegLocations[Count]] == 1)
-        {
-            // If there is check if there is an empty space beside that peg.
-            if(CurrentBoardLayout[CheckEmptyLocations[Count]] == 0)
+        {   
+            if(Count == 2)
             {
-                Moves[Count] = true;
+                // Prevent pins from jumping in non cardinal directions.
+                if( (((PegPosition+1) % 7) != 0) && (((PegPosition+2) % 7) != 0))
+                {
+                    // If there is check if there is an empty space beside that peg.
+                    if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition-14) >= 0) && ((PegPosition+14) <= BoardSize))
+                    {
+                        Moves[Count] = true;
+                    }
+                    else
+                    {
+                        Moves[Count] = false;
+                    }
+                }
+            }
+            else if(Count == 3)
+            {
+                // If there is check if there is an empty space beside that peg.
+                if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition-14) >= 0) && ((PegPosition+14) <= BoardSize))
+                {
+                    Moves[Count] = true;
+                }
+                else
+                {
+                    Moves[Count] = false;
+                }
             }
             else
             {
-                Moves[Count] = false;
+                // If there is check if there is an empty space beside that peg.
+                if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition-14) >= 0) && ((PegPosition+14) <= BoardSize))
+                {
+                    Moves[Count] = true;
+                }
+                else
+                {
+                    Moves[Count] = false;
+                }
             }
+
         }
         else
         {
             Moves[Count] = false;
         }
+        
+
+        // DEBUG
+        cout << Moves[Count] << endl;
 
         Count++;
     }
@@ -297,14 +327,6 @@ int main(int argc, char **argv)
     //                               North, South, East,  West
     vector<bool> SelectedPegMoves = {false, false, false, false};
 
-    vector<bool> test = GetPossibleMoves(13, BoardLayout);
-
-    for(int count = 0; count < 4;)
-    {
-        cout << test[count] << endl;
-        count++;
-    }
-
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
 
@@ -317,16 +339,16 @@ int main(int argc, char **argv)
     vector<int> PegSetupY = {4, 94, 184, 278, 371, 461, 551};
 
     // Create the board of 7x7 pegs.
-    for(int PegPosX = 0; PegPosX < 7;)
+    for(int PegPosY = 0; PegPosY < 7;)
     {
-        for(int PegPosY = 0; PegPosY < 7;)
+        for(int PegPosX = 0; PegPosX < 7;)
         {
             RectArray.push_back({PegSetupX[PegPosX], PegSetupY[PegPosY], int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
 
-            PegPosY++;
+            PegPosX++;
         }
 
-        PegPosX++;
+        PegPosY++;
     }
 
     // Remove pins outside the board on the left
