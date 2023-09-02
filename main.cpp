@@ -158,6 +158,36 @@ vector<bool> GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
     vector<int> CheckPegLocations = {PegPosition-1, PegPosition+1, PegPosition+7, PegPosition-7};
     vector<int> CheckEmptyLocations = {PegPosition-2, PegPosition+2, PegPosition+14, PegPosition-14};
 
+    // !!!!!!!!!!!!!!!!!!!
+    // To check if we have reached a side divide the peg position with (PegPosition+1)/7 == 1 limit the east direction
+    // to check west, do the same but check for (PegPosition+1)/7
+    // Probably use modulus instead
+
+    // If the position is on the side of the board.
+    int EastSideCheck = (PegPosition + 1) % 7;
+
+    cout << "SideCheck: " << EastSideCheck << endl;
+
+    if(5 > PegPosition)
+    {
+        cout << PegPosition << endl;
+    }
+    else if((PegPosition >= 5) && (8 > PegPosition))
+    {
+        PegPosition += 4;
+        cout << PegPosition << endl;
+    }
+    else if((PegPosition >= 8) && (18 > PegPosition))
+    {   
+        PegPosition += 6;
+        cout << PegPosition << endl;
+    }
+    else if((PegPosition >= 18) && (27 > PegPosition))
+    {   
+        PegPosition += 7;
+        cout << PegPosition << endl;
+    }
+
     for(int Count = 0; Count < 4;)
     {
         // Check if there is a peg on each side of the selected peg
@@ -267,7 +297,7 @@ int main(int argc, char **argv)
     //                               North, South, East,  West
     vector<bool> SelectedPegMoves = {false, false, false, false};
 
-    vector<bool> test = GetPossibleMoves(17, BoardLayout);
+    vector<bool> test = GetPossibleMoves(13, BoardLayout);
 
     for(int count = 0; count < 4;)
     {
@@ -445,10 +475,7 @@ int main(int argc, char **argv)
                 SDL_RenderPresent(renderer);
 
                 IsOutlineRendered = true;
-            }
 
-            if(IsJumpPositionSelected == false)
-            {
                 // Get the possible moves.
                 SelectedPegMoves = GetPossibleMoves(SpriteInfo.RectNumber, BoardLayout);
 
