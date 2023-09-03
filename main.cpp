@@ -31,6 +31,14 @@ struct ClickedPeg
     bool IsSelected;
 };
 
+struct PossibleMoves
+{
+    bool North;
+    bool South;
+    bool East;
+    bool West;
+};
+
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
 {      
@@ -149,9 +157,10 @@ ClickedPeg SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArray)
 }
 
 // Function for getting the possible moves for the selected peg.
-vector<bool> GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
+PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
 {
-    vector<bool> Moves = {false, false, false, false};
+    // define return struct
+    PossibleMoves Moves; Moves.North = false; Moves.South = false; Moves.East = false; Moves.West = false;
 
     const int BoardSize = CurrentBoardLayout.size();
 
@@ -177,7 +186,7 @@ vector<bool> GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
         PegPosition += 13;
     }
 
-    //                               North,         South,         East,          West
+    // Vectors for position checks   North,         South,         East,          West
     vector<int> CheckPegLocations = {PegPosition-7, PegPosition+7, PegPosition+1, PegPosition-1};
     vector<int> CheckEmptyLocations = {PegPosition-14, PegPosition+14, PegPosition+2, PegPosition-2};
 
@@ -186,33 +195,36 @@ vector<bool> GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
     
         // Check if there is a peg on each side of the selected peg
         if(CurrentBoardLayout[CheckPegLocations[Count]] == 1)
-        {   
+        {      
+            // North
             if(Count == 0)
             {
                 // If there is check if there is an empty space beside that peg.
                 if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition-14) >= 0))
                 {
-                    Moves[Count] = true;
+                    Moves.North = true;
                 }
                 else
                 {
-                    Moves[Count] = false;
+                    Moves.North = false;
                 }
             }
+            // South
             else if(Count == 1)
             {
 
                 // If there is check if there is an empty space beside that peg.
                 if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition+14) <= BoardSize))
                 {
-                    Moves[Count] = true;
+                    Moves.South = true;
                 }
                 else
                 {
-                    Moves[Count] = false;
+                    Moves.South = false;
                 }
 
             }
+            // East
             else if(Count == 2)
             {
                 // Prevent pins from jumping in non cardinal directions.
@@ -221,33 +233,31 @@ vector<bool> GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
                     // If there is check if there is an empty space beside that peg.
                     if(CurrentBoardLayout[CheckEmptyLocations[Count]] == 0)
                     {
-                        Moves[Count] = true;
+                        Moves.East = true;
                     }
                     else
                     {
-                        Moves[Count] = false;
+                        Moves.East = false;
                     }
                 }
             }
+            // West
             else if(Count == 3)
             {   
-                if( (((PegPosition-1) % 8) != 0) && (((PegPosition-2) % 8) != 0))
+                if( (((PegPosition-1) % 7) != 0) && (((PegPosition-2) % 7) != 0))
                 {
                     // If there is check if there is an empty space beside that peg.
                     if(CurrentBoardLayout[CheckEmptyLocations[Count]] == 0)
                     {
-                        Moves[Count] = true;
+                        Moves.West = true;
                     }
                     else
                     {
-                        Moves[Count] = false;
+                        Moves.West = false;
                     }
                 }
             }
         }
-
-        // DEBUG
-        cout << Moves[Count] << endl;
 
         Count++;
     }
@@ -328,15 +338,15 @@ int main(int argc, char **argv)
     // All 33 positions, 1 = populated, 0 = empty.
     vector<int> BoardLayout = {-1, -1, 1, 1, 1, -1, -1,
                                -1, -1, 1, 1, 1, -1, -1,
-                                 1, 1, 1, 1, 1, 0, 0, 
+                                 1, 1, 1, 1, 1, 1, 1, 
                                  1, 1, 1, 0, 1, 1, 1, 
-                                 0, 0, 1, 1, 1, 1, 1, 
+                                 1, 1, 1, 1, 1, 1, 1, 
                                -1, -1, 1, 1, 1, -1, -1,
                                -1, -1, 1, 1, 1, -1, -1};
 
     // Struct for storing possible moves when selecting a peg. 
     //                               North, South, East,  West
-    vector<bool> SelectedPegMoves = {false, false, false, false};
+    PossibleMoves SelectedPegMoves;
 
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
@@ -511,6 +521,9 @@ int main(int argc, char **argv)
 
                 // Get the possible moves.
                 SelectedPegMoves = GetPossibleMoves(SpriteInfo.RectNumber, BoardLayout);
+
+                // DEBUG
+                cout << SelectedPegMoves.North << ", " << SelectedPegMoves.South << ", " << SelectedPegMoves.East << ", " << SelectedPegMoves.West << endl;
 
                 // Update board layout.
             }
