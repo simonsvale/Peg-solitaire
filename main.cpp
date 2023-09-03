@@ -187,13 +187,39 @@ vector<bool> GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
         // Check if there is a peg on each side of the selected peg
         if(CurrentBoardLayout[CheckPegLocations[Count]] == 1)
         {   
-            if(Count == 2)
+            if(Count == 0)
+            {
+                // If there is check if there is an empty space beside that peg.
+                if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition-14) >= 0))
+                {
+                    Moves[Count] = true;
+                }
+                else
+                {
+                    Moves[Count] = false;
+                }
+            }
+            else if(Count == 1)
+            {
+
+                // If there is check if there is an empty space beside that peg.
+                if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition+14) <= BoardSize))
+                {
+                    Moves[Count] = true;
+                }
+                else
+                {
+                    Moves[Count] = false;
+                }
+
+            }
+            else if(Count == 2)
             {
                 // Prevent pins from jumping in non cardinal directions.
                 if( (((PegPosition+1) % 7) != 0) && (((PegPosition+2) % 7) != 0))
                 {
                     // If there is check if there is an empty space beside that peg.
-                    if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition-14) >= 0) && ((PegPosition+14) <= BoardSize))
+                    if(CurrentBoardLayout[CheckEmptyLocations[Count]] == 0)
                     {
                         Moves[Count] = true;
                     }
@@ -204,36 +230,21 @@ vector<bool> GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
                 }
             }
             else if(Count == 3)
-            {
-                // If there is check if there is an empty space beside that peg.
-                if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition-14) >= 0) && ((PegPosition+14) <= BoardSize))
+            {   
+                if( (((PegPosition-1) % 8) != 0) && (((PegPosition-2) % 8) != 0))
                 {
-                    Moves[Count] = true;
-                }
-                else
-                {
-                    Moves[Count] = false;
-                }
-            }
-            else
-            {
-                // If there is check if there is an empty space beside that peg.
-                if((CurrentBoardLayout[CheckEmptyLocations[Count]] == 0) && ((PegPosition-14) >= 0) && ((PegPosition+14) <= BoardSize))
-                {
-                    Moves[Count] = true;
-                }
-                else
-                {
-                    Moves[Count] = false;
+                    // If there is check if there is an empty space beside that peg.
+                    if(CurrentBoardLayout[CheckEmptyLocations[Count]] == 0)
+                    {
+                        Moves[Count] = true;
+                    }
+                    else
+                    {
+                        Moves[Count] = false;
+                    }
                 }
             }
-
         }
-        else
-        {
-            Moves[Count] = false;
-        }
-        
 
         // DEBUG
         cout << Moves[Count] << endl;
@@ -317,9 +328,9 @@ int main(int argc, char **argv)
     // All 33 positions, 1 = populated, 0 = empty.
     vector<int> BoardLayout = {-1, -1, 1, 1, 1, -1, -1,
                                -1, -1, 1, 1, 1, -1, -1,
-                                 1, 1, 1, 1, 1, 1, 1, 
+                                 1, 1, 1, 1, 1, 0, 0, 
                                  1, 1, 1, 0, 1, 1, 1, 
-                                 1, 1, 1, 1, 1, 1, 1, 
+                                 0, 0, 1, 1, 1, 1, 1, 
                                -1, -1, 1, 1, 1, -1, -1,
                                -1, -1, 1, 1, 1, -1, -1};
 
