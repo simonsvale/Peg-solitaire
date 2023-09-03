@@ -268,6 +268,23 @@ PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
     return Moves;
 }
 
+vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL_Rect> RectArray, int TrueBoardIndexPosition, int WIDTH)
+{
+    int BoardPosX;
+    int BoardPosY;
+
+    vector<int> PegSetupX = {73, 202, 330, 458, 587, 715, 843};
+    vector<int> PegSetupY = {4, 94, 184, 278, 371, 461, 551};
+
+    // Convert the Indexed Rect position for the select hole, to cartesian coordinates in the 7x7 grid.
+    BoardPosY = floor((TrueBoardIndexPosition+(RelativeHolePosition))/7)+1;
+    BoardPosX = (TrueBoardIndexPosition+(RelativeHolePosition) - (BoardPosY-1)*7+1);
+
+    RectArray[RectIndex] = {PegSetupX[BoardPosX-1], PegSetupY[BoardPosY-1]+55, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+
+    return RectArray;
+}
+
 
 // Main function
 int main(int argc, char **argv) 
@@ -537,23 +554,23 @@ int main(int argc, char **argv)
 
                 // Get possition for the HoleSelect textures
                 if(SelectedPegMoves.North == true)
-                {
-                    RectArray[34] = {PegSetupX[int((SelectedPegMoves.TrueBoardIndexPosition-14)/7)], PegSetupY[int((SelectedPegMoves.TrueBoardIndexPosition-14)/7)]+55, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+                {   
+                    RectArray = SetHoleRect(-14, 34, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
                 }
 
                 if(SelectedPegMoves.South == true)
                 {
-                    RectArray[35] = {PegSetupX[int((SelectedPegMoves.TrueBoardIndexPosition+14)/7)], PegSetupY[int((SelectedPegMoves.TrueBoardIndexPosition+14)/7)]+55, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+                    RectArray = SetHoleRect(14, 35, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
                 }
 
                 if(SelectedPegMoves.East == true)
                 {
-                    RectArray[36] = {PegSetupX[int((SelectedPegMoves.TrueBoardIndexPosition+2)/7)], PegSetupY[int((SelectedPegMoves.TrueBoardIndexPosition+2)/7)]+55, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+                    RectArray = SetHoleRect(2, 36, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
                 }
 
                 if(SelectedPegMoves.West == true)
                 {
-                    RectArray[37] = {PegSetupX[int((SelectedPegMoves.TrueBoardIndexPosition-2)/7)], PegSetupY[int((SelectedPegMoves.TrueBoardIndexPosition-2)/7)]+55, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+                    RectArray = SetHoleRect(-2, 37, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
                 }
 
                 // Render selected peg with outline and the possible moves.
