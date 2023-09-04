@@ -37,7 +37,6 @@ struct PossibleMoves
     bool South;
     bool East;
     bool West;
-    int TrueBoardIndexPosition;
 };
 
 // Function for deleting SDL textures and freeing surfaces
@@ -161,31 +160,9 @@ ClickedSprite SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArra
 PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
 {
     // define return struct
-    PossibleMoves Moves; Moves.North = false; Moves.South = false; Moves.East = false; Moves.West = false; Moves.TrueBoardIndexPosition = -1;
+    PossibleMoves Moves; Moves.North = false; Moves.South = false; Moves.East = false; Moves.West = false;
 
     const int BoardSize = CurrentBoardLayout.size();
-
-    // Set the correct index for the CurrentBoardLayout for the PegPosition taken from the RectArray.
-    if((PegPosition >= 5) && (8 > PegPosition))
-    {
-        PegPosition += 4;
-    }
-    else if((PegPosition >= 8) && (18 > PegPosition))
-    {   
-        PegPosition += 6;
-    }
-    else if((PegPosition >= 18) && (28 > PegPosition))
-    {   
-        PegPosition += 7;
-    }
-    else if((PegPosition >= 28) && (31 > PegPosition))
-    {   
-        PegPosition += 9;
-    }
-    else if((PegPosition >= 31) && (34 > PegPosition))
-    {   
-        PegPosition += 13;
-    }
 
     // Vectors for position checks   North,         South,         East,          West
     vector<int> CheckPegLocations = {PegPosition-7, PegPosition+7, PegPosition+1, PegPosition-1};
@@ -263,8 +240,6 @@ PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
         Count++;
     }
 
-    Moves.TrueBoardIndexPosition = PegPosition;
-
     return Moves;
 }
 
@@ -283,6 +258,27 @@ vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL
     RectArray[RectIndex] = {PegSetupX[BoardPosX-1], PegSetupY[BoardPosY-1]+55, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
 
     return RectArray;
+}
+
+// A function for converting the static RectNumber of the textures which does not change when a peg moves,
+// to the actual board position of that peg.
+int GetTextureBoardPosition(int RectNumber, vector<int> BoardLayout)
+{
+    // For loop iterating through all positions
+    // Note: This can be made more efficient since 14 more positions are not used.
+    for(int Index = 2; Index < 49;)
+    {   
+        // Since the RectNumber is predefined, look for it.
+        if(RectNumber == BoardLayout[Index])
+        {   
+            // Return the real board position of the texture
+            return Index;
+        }   
+        Index++;
+    }
+
+    // Return fail
+    return -1;
 }
 
 
@@ -328,6 +324,8 @@ int main(int argc, char **argv)
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
     int WIDTH = DisplaySize.w/2;
     int HEIGHT = DisplaySize.h/1.4;
+    // int WIDTH = 1920/2;
+    // int HEIGHT = 1080/1.6;
     vector<int> ScreenResolution = {WIDTH, HEIGHT};
 
     // Create the SDL window and set its title
@@ -367,6 +365,7 @@ int main(int argc, char **argv)
     // Struct for storing possible moves when selecting a peg. 
     //                               North, South, East,  West
     PossibleMoves SelectedPegMoves;
+    int TruePegPosition;
 
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
@@ -543,36 +542,33 @@ int main(int argc, char **argv)
             {
                 IsOutlineRendered = true;
 
-                // Get the possible moves.
-                SelectedPegMoves = GetPossibleMoves(SpriteInfo.RectNumber, BoardLayout);
+                // Get actual location of peg.
+                TruePegPosition = GetTextureBoardPosition(SpriteInfo.RectNumber, BoardLayout);
 
-                // DEBUG
-                cout << SelectedPegMoves.North << ", " << SelectedPegMoves.South << ", " << SelectedPegMoves.East << ", " << SelectedPegMoves.West << endl;
+                // Get the possible moves of that peg.
+                SelectedPegMoves = GetPossibleMoves(TruePegPosition, BoardLayout);
 
-                cout << "Rect: " << SpriteInfo.RectNumber << endl;
-                cout << "TrueIndex: " << SelectedPegMoves.TrueBoardIndexPosition << endl;
-
-                // Get possition for the HoleSelect textures
+                // Set the HoleSelect texture position
                 if(SelectedPegMoves.North == true)
                 {   
-                    RectArray = SetHoleRect(-14, 34, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
+                    RectArray = SetHoleRect(-14, 34, RectArray, TruePegPosition, WIDTH);
                 }
 
                 if(SelectedPegMoves.South == true)
                 {
-                    RectArray = SetHoleRect(14, 35, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
+                    RectArray = SetHoleRect(14, 35, RectArray, TruePegPosition, WIDTH);
                 }
 
                 if(SelectedPegMoves.East == true)
                 {
-                    RectArray = SetHoleRect(2, 36, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
+                    RectArray = SetHoleRect(2, 36, RectArray, TruePegPosition, WIDTH);
                 }
 
                 if(SelectedPegMoves.West == true)
                 {
-                    RectArray = SetHoleRect(-2, 37, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
+                    RectArray = SetHoleRect(-2, 37, RectArray, TruePegPosition, WIDTH);
                 }
-
+                
                 // Render selected peg with outline and the possible moves.
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                 SDL_RenderPresent(renderer);
