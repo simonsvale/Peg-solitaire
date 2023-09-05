@@ -295,7 +295,11 @@ vector<int> SetNewBoardPosition(vector<int> CurrentBoardLayout, int RelativeHole
 {
     vector<int> NewBoardLayout = CurrentBoardLayout;
 
+    // Set New position
     NewBoardLayout[TruePegPosition + RelativeHolePosition] = SpriteInfoPeg.RectNumber;
+
+    // Remove the "jumped" peg
+    NewBoardLayout[TruePegPosition + (RelativeHolePosition/2)] = 0;
 
     return NewBoardLayout;
 }   
