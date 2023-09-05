@@ -40,6 +40,12 @@ struct PossibleMoves
     bool West;
 };
 
+struct UpdateBoard
+{
+    vector<int> NewBoardPosition;
+    int JumpedPegRectNumber;
+};
+
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
 {      
@@ -291,15 +297,20 @@ int GetTextureBoardPosition(int RectNumber, vector<int> BoardLayout)
     return -1;
 }
 
-vector<int> SetNewBoardPosition(vector<int> CurrentBoardLayout, int RelativeHolePosition, ClickedSprite SpriteInfoPeg, int TruePegPosition)
+UpdateBoard UpdateBoardPosition(vector<int> CurrentBoardLayout, int RelativeHolePosition, ClickedSprite SpriteInfoPeg, int TruePegPosition)
 {
-    vector<int> NewBoardLayout = CurrentBoardLayout;
+    UpdateBoard NewBoardLayout;
+
+    NewBoardLayout.NewBoardPosition = CurrentBoardLayout;
 
     // Set New position
-    NewBoardLayout[TruePegPosition + RelativeHolePosition] = SpriteInfoPeg.RectNumber;
+    NewBoardLayout.NewBoardPosition[TruePegPosition + RelativeHolePosition] = SpriteInfoPeg.RectNumber;
 
     // Remove the "jumped" peg
-    NewBoardLayout[TruePegPosition + (RelativeHolePosition/2)] = 0;
+    int RelativeJumpedPegPos = TruePegPosition + (RelativeHolePosition/2);
+
+    NewBoardLayout.JumpedPegRectNumber = NewBoardLayout.NewBoardPosition[RelativeJumpedPegPos];
+    NewBoardLayout.NewBoardPosition[RelativeJumpedPegPos] = 0;
 
     return NewBoardLayout;
 }   
@@ -389,6 +400,8 @@ int main(int argc, char **argv)
                                  21, 22, 23, 24, 25, 26, 27, 
                                -1, -1, 28, 29, 30, -1, -1,
                                -1, -1, 31, 32, 33, -1, -1};
+
+    UpdateBoard Board;
 
     // Struct for storing possible moves when selecting a peg. 
     //                               North, South, East,  West
@@ -619,27 +632,41 @@ int main(int argc, char **argv)
                     // Set new board position, based on chosen direction.
                     if(SpriteInfo.RectNumber == NORTH)
                     {
-                        BoardLayout = SetNewBoardPosition(BoardLayout, -14, SpriteInfoPeg, TruePegPosition);
+                        Board = UpdateBoardPosition(BoardLayout, -14, SpriteInfoPeg, TruePegPosition);
+                        BoardLayout = Board.NewBoardPosition;
                     }
 
                     if(SpriteInfo.RectNumber == SOUTH)
                     {
-                        BoardLayout = SetNewBoardPosition(BoardLayout, 14, SpriteInfoPeg, TruePegPosition);
+                        Board = UpdateBoardPosition(BoardLayout, 14, SpriteInfoPeg, TruePegPosition);
+                        BoardLayout = Board.NewBoardPosition;
                     }
 
                     if(SpriteInfo.RectNumber == EAST)
                     {
-                        BoardLayout = SetNewBoardPosition(BoardLayout, 2, SpriteInfoPeg, TruePegPosition);
+                        Board = UpdateBoardPosition(BoardLayout, 2, SpriteInfoPeg, TruePegPosition);
+                        BoardLayout = Board.NewBoardPosition;
                     }
 
                     if(SpriteInfo.RectNumber == WEST)
                     {
-                        BoardLayout = SetNewBoardPosition(BoardLayout, -2, SpriteInfoPeg, TruePegPosition);
+                        Board = UpdateBoardPosition(BoardLayout, -2, SpriteInfoPeg, TruePegPosition);
+                        BoardLayout = Board.NewBoardPosition;
                     }
 
-                    for(int Number = 0; Number < BoardLayout.size();)
+                    // DEBUG !!!
+                    cout << Board.JumpedPegRectNumber << endl;
+
+                    for(int Number = 1; Number < BoardLayout.size();)
                     {
-                        cout << BoardLayout[Number] << ", ";
+                        cout << BoardLayout[Number-1] << ", ";
+
+                        if((Number % 7) == 0)
+                        {
+                            cout << endl;
+                        }
+
+
                         Number++;
                     }
 
