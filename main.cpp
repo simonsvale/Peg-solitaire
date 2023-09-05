@@ -291,6 +291,15 @@ int GetTextureBoardPosition(int RectNumber, vector<int> BoardLayout)
     return -1;
 }
 
+vector<int> SetNewBoardPosition(vector<int> CurrentBoardLayout, int RelativeHolePosition, ClickedSprite SpriteInfoPeg, int TruePegPosition)
+{
+    vector<int> NewBoardLayout = CurrentBoardLayout;
+
+    NewBoardLayout[TruePegPosition + RelativeHolePosition] = SpriteInfoPeg.RectNumber;
+
+    return NewBoardLayout;
+}   
+
 
 // Main function
 int main(int argc, char **argv) 
@@ -315,6 +324,11 @@ int main(int argc, char **argv)
     // Bool for determining if the window is in fullscreen mode
     bool IsFullscreen = false;
 
+    // Rects corrosponding to distination hole directions.
+    int NORTH = 34;
+    int SOUTH = 35;
+    int EAST = 36;
+    int WEST = 37;
 
     // For storing the actual images, that are used as textures.
     SDL_Surface *SurfaceArray[ImagePathArraySize];
@@ -510,8 +524,6 @@ int main(int argc, char **argv)
 
                     PreviousRectNumber.clear();
                     PreviousRectNumber.push_back(SpriteInfo.RectNumber);
-                    
-                    cout << SpriteInfo.RectNumber << endl;
 
                     // Reset selection holes position if a hole have not been selected
                     if(SpriteInfo.RectNumber < 34)
@@ -529,7 +541,6 @@ int main(int argc, char **argv)
                     }
                 }
             }
-
 
             // handle keyboard input
             if (SDL_KEYDOWN == windowEvent.type)
@@ -598,7 +609,37 @@ int main(int argc, char **argv)
 
                 if(PegJumpAnimationFrames.size() == 0)
                 {
-                    // The values should be the current position of the selected peg. (!!!)
+                    // Set the peg's previous position to 0.
+                    BoardLayout[TruePegPosition] = 0;
+
+                    // Set new board position, based on chosen direction.
+                    if(SpriteInfo.RectNumber == NORTH)
+                    {
+                        BoardLayout = SetNewBoardPosition(BoardLayout, -14, SpriteInfoPeg, TruePegPosition);
+                    }
+
+                    if(SpriteInfo.RectNumber == SOUTH)
+                    {
+                        BoardLayout = SetNewBoardPosition(BoardLayout, 14, SpriteInfoPeg, TruePegPosition);
+                    }
+
+                    if(SpriteInfo.RectNumber == EAST)
+                    {
+                        BoardLayout = SetNewBoardPosition(BoardLayout, 2, SpriteInfoPeg, TruePegPosition);
+                    }
+
+                    if(SpriteInfo.RectNumber == WEST)
+                    {
+                        BoardLayout = SetNewBoardPosition(BoardLayout, -2, SpriteInfoPeg, TruePegPosition);
+                    }
+
+                    for(int Number = 0; Number < BoardLayout.size();)
+                    {
+                        cout << BoardLayout[Number] << ", ";
+                        Number++;
+                    }
+
+                    // Take the chosen direction (NORTH, SOUTH, EAST or WEST) and run the correct animation.
                     PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y);
 
                     // Reset the destination holes position.
