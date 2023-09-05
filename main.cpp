@@ -633,26 +633,26 @@ int main(int argc, char **argv)
                     if(SpriteInfo.RectNumber == NORTH)
                     {
                         Board = UpdateBoardPosition(BoardLayout, -14, SpriteInfoPeg, TruePegPosition);
-                        BoardLayout = Board.NewBoardPosition;
                     }
 
                     if(SpriteInfo.RectNumber == SOUTH)
                     {
                         Board = UpdateBoardPosition(BoardLayout, 14, SpriteInfoPeg, TruePegPosition);
-                        BoardLayout = Board.NewBoardPosition;
                     }
 
                     if(SpriteInfo.RectNumber == EAST)
                     {
                         Board = UpdateBoardPosition(BoardLayout, 2, SpriteInfoPeg, TruePegPosition);
-                        BoardLayout = Board.NewBoardPosition;
                     }
 
                     if(SpriteInfo.RectNumber == WEST)
                     {
                         Board = UpdateBoardPosition(BoardLayout, -2, SpriteInfoPeg, TruePegPosition);
-                        BoardLayout = Board.NewBoardPosition;
                     }
+
+                    // Update board layout
+                    BoardLayout = Board.NewBoardPosition;
+
 
                     // DEBUG !!!
                     cout << Board.JumpedPegRectNumber << endl;
@@ -669,6 +669,7 @@ int main(int argc, char **argv)
 
                         Number++;
                     }
+                    cout << endl;
 
                     // Take the chosen direction (NORTH, SOUTH, EAST or WEST) and run the correct animation.
                     PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y);
@@ -678,7 +679,6 @@ int main(int argc, char **argv)
                     {   
                         RectArray[HoleNumber] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
 
-                        cout << RectArray[HoleNumber].y << endl;
                         HoleNumber++;
                     }
 
@@ -720,6 +720,12 @@ int main(int argc, char **argv)
 
                     SpriteInfo.IsSelected = false;
                     SpriteInfo.RectNumber = -2;
+
+                    // Remove jumped peg (Could also have an animation, perhaps like when the cards bounce in normal solitaire)
+                    RectArray[Board.JumpedPegRectNumber] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+
+                    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
+                    SDL_RenderPresent(renderer);
                 }
 
                 GameTick++;
