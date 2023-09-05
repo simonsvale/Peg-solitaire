@@ -29,6 +29,7 @@ struct ClickedSprite
 {
     int RectNumber;
     bool IsSelected;
+    bool IsPeg;
 };
 
 struct PossibleMoves
@@ -37,7 +38,12 @@ struct PossibleMoves
     bool South;
     bool East;
     bool West;
-    int TrueBoardIndexPosition;
+};
+
+struct UpdateBoard
+{
+    vector<int> NewBoardPosition;
+    int JumpedPegRectNumber;
 };
 
 // Function for deleting SDL textures and freeing surfaces
@@ -134,13 +140,22 @@ ClickedSprite SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArra
     ClickedSprite returnVal;
 
     for(int RectNumber = RectRange[0]; RectNumber < RectRange[1];)
-    {
+    {   
         // Take mouse pos and see if it is inside the boundary of any peg sprite.
         if(SDL_PointInRect(&MousePos, &RectArray[RectNumber]) == true)
         {
             // If is is set the structs members to the correct information.
             returnVal.IsSelected = true;
             returnVal.RectNumber = RectNumber;
+            
+            if(RectNumber < 34)
+            {
+                returnVal.IsPeg = true;
+            }
+            else
+            {
+                returnVal.IsPeg = false;
+            }
 
             return returnVal;
         }
@@ -161,31 +176,9 @@ ClickedSprite SpriteClickDetection(SDL_Point MousePos, vector<SDL_Rect> RectArra
 PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
 {
     // define return struct
-    PossibleMoves Moves; Moves.North = false; Moves.South = false; Moves.East = false; Moves.West = false; Moves.TrueBoardIndexPosition = -1;
+    PossibleMoves Moves; Moves.North = false; Moves.South = false; Moves.East = false; Moves.West = false;
 
     const int BoardSize = CurrentBoardLayout.size();
-
-    // Set the correct index for the CurrentBoardLayout for the PegPosition taken from the RectArray.
-    if((PegPosition >= 5) && (8 > PegPosition))
-    {
-        PegPosition += 4;
-    }
-    else if((PegPosition >= 8) && (18 > PegPosition))
-    {   
-        PegPosition += 6;
-    }
-    else if((PegPosition >= 18) && (28 > PegPosition))
-    {   
-        PegPosition += 7;
-    }
-    else if((PegPosition >= 28) && (31 > PegPosition))
-    {   
-        PegPosition += 9;
-    }
-    else if((PegPosition >= 31) && (34 > PegPosition))
-    {   
-        PegPosition += 13;
-    }
 
     // Vectors for position checks   North,         South,         East,          West
     vector<int> CheckPegLocations = {PegPosition-7, PegPosition+7, PegPosition+1, PegPosition-1};
@@ -263,8 +256,6 @@ PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
         Count++;
     }
 
-    Moves.TrueBoardIndexPosition = PegPosition;
-
     return Moves;
 }
 
@@ -284,6 +275,45 @@ vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL
 
     return RectArray;
 }
+
+// A function for converting the static RectNumber of the textures which does not change when a peg moves,
+// to the actual board position of that peg.
+int GetTextureBoardPosition(int RectNumber, vector<int> BoardLayout)
+{
+    // For loop iterating through all positions
+    // Note: This can be made more efficient since 14 more positions are not used.
+    for(int Index = 2; Index < 49;)
+    {   
+        // Since the RectNumber is predefined, look for it.
+        if(RectNumber == BoardLayout[Index])
+        {   
+            // Return the real board position of the texture
+            return Index;
+        }   
+        Index++;
+    }
+
+    // Return fail
+    return -1;
+}
+
+UpdateBoard UpdateBoardPosition(vector<int> CurrentBoardLayout, int RelativeHolePosition, ClickedSprite SpriteInfoPeg, int TruePegPosition)
+{
+    UpdateBoard NewBoardLayout;
+
+    NewBoardLayout.NewBoardPosition = CurrentBoardLayout;
+
+    // Set New position
+    NewBoardLayout.NewBoardPosition[TruePegPosition + RelativeHolePosition] = SpriteInfoPeg.RectNumber;
+
+    // Remove the "jumped" peg
+    int RelativeJumpedPegPos = TruePegPosition + (RelativeHolePosition/2);
+
+    NewBoardLayout.JumpedPegRectNumber = NewBoardLayout.NewBoardPosition[RelativeJumpedPegPos];
+    NewBoardLayout.NewBoardPosition[RelativeJumpedPegPos] = 0;
+
+    return NewBoardLayout;
+}   
 
 
 // Main function
@@ -309,6 +339,11 @@ int main(int argc, char **argv)
     // Bool for determining if the window is in fullscreen mode
     bool IsFullscreen = false;
 
+    // Rects corrosponding to distination hole directions.
+    int NORTH = 34;
+    int SOUTH = 35;
+    int EAST = 36;
+    int WEST = 37;
 
     // For storing the actual images, that are used as textures.
     SDL_Surface *SurfaceArray[ImagePathArraySize];
@@ -328,6 +363,8 @@ int main(int argc, char **argv)
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
     int WIDTH = DisplaySize.w/2;
     int HEIGHT = DisplaySize.h/1.4;
+    // int WIDTH = 1920/2;
+    // int HEIGHT = 1080/1.6;
     vector<int> ScreenResolution = {WIDTH, HEIGHT};
 
     // Create the SDL window and set its title
@@ -364,13 +401,18 @@ int main(int argc, char **argv)
                                -1, -1, 28, 29, 30, -1, -1,
                                -1, -1, 31, 32, 33, -1, -1};
 
+    UpdateBoard Board;
+
     // Struct for storing possible moves when selecting a peg. 
     //                               North, South, East,  West
     PossibleMoves SelectedPegMoves;
+    int TruePegPosition;
 
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
-    vector<int> PegRectRange = {2, 35};
+
+    // Ranges of specific rects
+    vector<int> PegRectRange = {2, 38};
 
     // Push Rects to the RectArray
     RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
@@ -432,8 +474,9 @@ int main(int argc, char **argv)
     SDL_Event windowEvent;
     SDL_Point MousePos;
 
-    // Setup Struct
-    ClickedSprite SpriteInfo; SpriteInfo.IsSelected = false; SpriteInfo.RectNumber = -1;
+    // Setup Struct for a sprite
+    ClickedSprite SpriteInfo; SpriteInfo.IsSelected = false; SpriteInfo.RectNumber = -1; SpriteInfo.IsPeg = false;
+    ClickedSprite SpriteInfoPeg; SpriteInfo.IsSelected = false; SpriteInfo.RectNumber = -1;
 
     // Set background color
     SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
@@ -480,33 +523,39 @@ int main(int argc, char **argv)
 			{  
                 // Detect if any sprite was clicked/selected, and return a struct with that information.
                 SpriteInfo = SpriteClickDetection(MousePos, RectArray, PegRectRange);
-            }
 
-            // Check if a sprite was selected.
-            if(SpriteInfo.IsSelected == true)
-            {   
-                // To not spam the rendering function, check if the previous mouse click was deselecting the (Not same) peg or the outline tick is 0, then render
-                if((OutlineTick == 0) || (SpriteInfo.RectNumber != PreviousRectNumber.back()))
+                if(SpriteInfo.IsPeg == true)
+                {
+                    SpriteInfoPeg = SpriteInfo;
+                }
+
+                // Check if a sprite was selected.
+                if(SpriteInfo.IsSelected == true)
                 {   
-                    IsOutlineRendered = false;
-                    OutlineTick++;
-                }
+                    // To not spam the rendering function, check if the previous mouse click was deselecting the (Not same) peg or the outline tick is 0, then render
+                    if((OutlineTick == 0) || (SpriteInfo.RectNumber != PreviousRectNumber.back()))
+                    {   
+                        IsOutlineRendered = false;
+                        OutlineTick++;
+                    }
 
-                // Check if a jump position have been set.
-                if(IsJumpPositionSelected == true)
-                {
-                    // Set animation bool to true.
-                    IsAnimationActive = true;
-                }
+                    PreviousRectNumber.clear();
+                    PreviousRectNumber.push_back(SpriteInfo.RectNumber);
 
-                PreviousRectNumber.clear();
-                PreviousRectNumber.push_back(SpriteInfo.RectNumber);
-
-                // Reset selection holes position
-                for(int Hole = 34; Hole < 38;)
-                {
-                    RectArray[Hole] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
-                    Hole++;
+                    // Reset selection holes position if a hole have not been selected
+                    if(SpriteInfo.RectNumber < 34)
+                    {
+                        for(int Hole = 34; Hole < 38;)
+                        {
+                            RectArray[Hole] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+                            Hole++;
+                        }
+                    }
+                    else
+                    {
+                        IsJumpPositionSelected = true;
+                        IsAnimationActive = true;
+                    }
                 }
             }
 
@@ -527,52 +576,43 @@ int main(int argc, char **argv)
                         IsFullscreen = false;
                     }
                 }                
-
-                // DEBUG for JumpPosSelection
-                if (windowEvent.key.keysym.sym == SDLK_s)
-                {
-                    IsJumpPositionSelected = true;
-                }
             }
         }
 
         // Check if a peg have been selected
-        if(SpriteInfo.IsSelected == true)
+        if(SpriteInfoPeg.IsSelected == true)
         {   
             if((IsJumpPositionSelected == false) && (IsOutlineRendered == false))
             {
                 IsOutlineRendered = true;
 
-                // Get the possible moves.
-                SelectedPegMoves = GetPossibleMoves(SpriteInfo.RectNumber, BoardLayout);
+                // Get actual location of peg.
+                TruePegPosition = GetTextureBoardPosition(SpriteInfoPeg.RectNumber, BoardLayout);
 
-                // DEBUG
-                cout << SelectedPegMoves.North << ", " << SelectedPegMoves.South << ", " << SelectedPegMoves.East << ", " << SelectedPegMoves.West << endl;
+                // Get the possible moves of that peg.
+                SelectedPegMoves = GetPossibleMoves(TruePegPosition, BoardLayout);
 
-                cout << "Rect: " << SpriteInfo.RectNumber << endl;
-                cout << "TrueIndex: " << SelectedPegMoves.TrueBoardIndexPosition << endl;
-
-                // Get possition for the HoleSelect textures
+                // Set the HoleSelect texture position
                 if(SelectedPegMoves.North == true)
                 {   
-                    RectArray = SetHoleRect(-14, 34, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
+                    RectArray = SetHoleRect(-14, 34, RectArray, TruePegPosition, WIDTH);
                 }
 
                 if(SelectedPegMoves.South == true)
                 {
-                    RectArray = SetHoleRect(14, 35, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
+                    RectArray = SetHoleRect(14, 35, RectArray, TruePegPosition, WIDTH);
                 }
 
                 if(SelectedPegMoves.East == true)
                 {
-                    RectArray = SetHoleRect(2, 36, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
+                    RectArray = SetHoleRect(2, 36, RectArray, TruePegPosition, WIDTH);
                 }
 
                 if(SelectedPegMoves.West == true)
                 {
-                    RectArray = SetHoleRect(-2, 37, RectArray, SelectedPegMoves.TrueBoardIndexPosition, WIDTH);
+                    RectArray = SetHoleRect(-2, 37, RectArray, TruePegPosition, WIDTH);
                 }
-
+                
                 // Render selected peg with outline and the possible moves.
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                 SDL_RenderPresent(renderer);
@@ -586,8 +626,65 @@ int main(int argc, char **argv)
 
                 if(PegJumpAnimationFrames.size() == 0)
                 {
-                    // The values should be the current position of the selected peg. (!!!)
-                    PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfo.RectNumber].x, RectArray[SpriteInfo.RectNumber].y);
+                    // Set the peg's previous position to 0.
+                    BoardLayout[TruePegPosition] = 0;
+
+                    // Set new board position, based on chosen direction.
+                    if(SpriteInfo.RectNumber == NORTH)
+                    {
+                        Board = UpdateBoardPosition(BoardLayout, -14, SpriteInfoPeg, TruePegPosition);
+                    }
+
+                    if(SpriteInfo.RectNumber == SOUTH)
+                    {
+                        Board = UpdateBoardPosition(BoardLayout, 14, SpriteInfoPeg, TruePegPosition);
+                    }
+
+                    if(SpriteInfo.RectNumber == EAST)
+                    {
+                        Board = UpdateBoardPosition(BoardLayout, 2, SpriteInfoPeg, TruePegPosition);
+                    }
+
+                    if(SpriteInfo.RectNumber == WEST)
+                    {
+                        Board = UpdateBoardPosition(BoardLayout, -2, SpriteInfoPeg, TruePegPosition);
+                    }
+
+                    // Update board layout
+                    BoardLayout = Board.NewBoardPosition;
+
+
+                    // DEBUG !!!
+                    cout << Board.JumpedPegRectNumber << endl;
+
+                    for(int Number = 1; Number < BoardLayout.size();)
+                    {
+                        cout << BoardLayout[Number-1] << ", ";
+
+                        if((Number % 7) == 0)
+                        {
+                            cout << endl;
+                        }
+
+
+                        Number++;
+                    }
+                    cout << endl;
+
+                    // Take the chosen direction (NORTH, SOUTH, EAST or WEST) and run the correct animation.
+                    PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y);
+
+                    // Reset the destination holes position.
+                    for(int HoleNumber = 34; HoleNumber < 38;)
+                    {   
+                        RectArray[HoleNumber] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+
+                        HoleNumber++;
+                    }
+
+                    // Rerender the screen with the holes new position set in the top left.
+                    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
+                    SDL_RenderPresent(renderer);
                 }
 
                 // Run through the frames of the animation
@@ -598,7 +695,7 @@ int main(int argc, char **argv)
                     SDL_RenderClear(renderer);
 
                     // Update RectArray to do animation [2] should be a variable: int SelectPeg (!!!)
-                    RectArray[SpriteInfo.RectNumber] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
+                    RectArray[SpriteInfoPeg.RectNumber] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
                     // Render the animation
                     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
@@ -617,6 +714,18 @@ int main(int argc, char **argv)
 
                     // Clear the Stored Animation frames, so a new animation, with a new position can be used.
                     PegJumpAnimationFrames.clear();
+
+                    SpriteInfoPeg.IsSelected = false;
+                    SpriteInfoPeg.RectNumber = -2;
+
+                    SpriteInfo.IsSelected = false;
+                    SpriteInfo.RectNumber = -2;
+
+                    // Remove jumped peg (Could also have an animation, perhaps like when the cards bounce in normal solitaire)
+                    RectArray[Board.JumpedPegRectNumber] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+
+                    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
+                    SDL_RenderPresent(renderer);
                 }
 
                 GameTick++;
@@ -624,7 +733,7 @@ int main(int argc, char **argv)
         }
 
         // To not spam the rendering funtion, check if no peg is selected, 
-        // this will only happen once since the SpriteInfo.RectNumber is set to -2.
+        // this will only happen once since the SpriteInfoPeg.RectNumber is set to -2.
         if(SpriteInfo.RectNumber == -1)
         {   
             if(OutlineTick != 0)
@@ -642,8 +751,12 @@ int main(int argc, char **argv)
             RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
             SDL_RenderPresent(renderer);
 
+            SpriteInfoPeg.IsSelected = false;
+            SpriteInfoPeg.RectNumber = -2;
+
             SpriteInfo.IsSelected = false;
             SpriteInfo.RectNumber = -2;
+
             IsJumpPositionSelected = false;
         }
         
