@@ -319,6 +319,9 @@ UpdateBoard UpdateBoardPosition(vector<int> CurrentBoardLayout, int RelativeHole
 // Main function
 int main(int argc, char **argv) 
 {   
+
+    //LookupTableCalculator(257);
+
     // For determining if the window is minimized or not.
     bool IsWindowActive = true;
 
@@ -650,6 +653,9 @@ int main(int argc, char **argv)
                         Board = UpdateBoardPosition(BoardLayout, -2, SpriteInfoPeg, TruePegPosition);
                     }
 
+                    // Take the chosen direction SpriteInfo.RectNumber, which is NORTH, SOUTH, EAST or WEST, and run the correct animation.
+                    PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y, SpriteInfo.RectNumber);
+
                     // Update board layout
                     BoardLayout = Board.NewBoardPosition;
 
@@ -666,13 +672,9 @@ int main(int argc, char **argv)
                             cout << endl;
                         }
 
-
                         Number++;
                     }
                     cout << endl;
-
-                    // Take the chosen direction (NORTH, SOUTH, EAST or WEST) and run the correct animation.
-                    PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y);
 
                     // Reset the destination holes position.
                     for(int HoleNumber = 34; HoleNumber < 38;)
