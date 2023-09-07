@@ -8,7 +8,7 @@ Any peg can be eliminated by selecting a peg and jumping over an adjacent peg an
 The adjacent peg will now be removed from the board.
 
 The game is made in C++, using the SDL2 and SDL2_image libraries. 
-The textures are made using blender.
+The textures are made using Blender and Paint.net.
 
 As of now, the game only supports windows.
 
