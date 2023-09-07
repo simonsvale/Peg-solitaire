@@ -7,7 +7,8 @@ The game is won if the player can eliminate all pegs, but the last, which should
 Any peg can be eliminated by selecting a peg and jumping over an adjacent peg and into an empty hole. 
 The adjacent peg will now be removed from the board.
 
-The game is made in C++, using the SDL2 and SDL2_image libraries.
+The game is made in C++, using the SDL2 and SDL2_image libraries. 
+The textures are made using blender.
 
 As of now, the game only supports windows.
 
