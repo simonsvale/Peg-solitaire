@@ -8,7 +8,6 @@
 #include <fstream>
 #include <string>
 #include <windows.h> 
-#include <chrono>
 
 // Include non built-in header files
 #include <SDL2/SDL.h>
@@ -18,7 +17,6 @@
 #include "animations.h"
 
 using namespace std;
-using namespace chrono;
 
 // Const char for holding the position of the textures.
 const char *ImagePathArray[] = {"textures/dummy.png", "textures/PegBoard.png", "textures/Peg.png", "textures/HoleSelect.png", "textures/PegOutline.png"};
@@ -319,6 +317,8 @@ UpdateBoard UpdateBoardPosition(vector<int> CurrentBoardLayout, int RelativeHole
 // Main function
 int main(int argc, char **argv) 
 {   
+    // LookupTableCalculator(184);
+
     // For determining if the window is minimized or not.
     bool IsWindowActive = true;
 
@@ -415,7 +415,7 @@ int main(int argc, char **argv)
     vector<int> PegRectRange = {2, 38};
 
     // Push Rects to the RectArray
-    RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
+    RectArray.push_back({-100, -100, 90, 90}); // Dummy texture rect
     RectArray.push_back({0, -80, WIDTH, WIDTH}); // board texture rect
 
     // Setup positions
@@ -509,6 +509,7 @@ int main(int argc, char **argv)
 
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                 SDL_RenderPresent(renderer);
+                SDL_RenderClear(renderer);
             }
         }
 
@@ -616,14 +617,12 @@ int main(int argc, char **argv)
                 // Render selected peg with outline and the possible moves.
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                 SDL_RenderPresent(renderer);
+                SDL_RenderClear(renderer);
             }
             
             // If a JumpPos have been selected then the animation
             if((IsAnimationActive == true) && (IsJumpPositionSelected == true))
             {   
-                // Start timing, using chrono (DEBUG)
-                time_point<steady_clock> start = steady_clock::now();
-
                 if(PegJumpAnimationFrames.size() == 0)
                 {
                     // Set the peg's previous position to 0.
@@ -650,10 +649,13 @@ int main(int argc, char **argv)
                         Board = UpdateBoardPosition(BoardLayout, -2, SpriteInfoPeg, TruePegPosition);
                     }
 
+                    // Take the chosen direction SpriteInfo.RectNumber, which is NORTH, SOUTH, EAST or WEST, and run the correct animation.
+                    PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y, SpriteInfo.RectNumber, TruePegPosition);
+
                     // Update board layout
                     BoardLayout = Board.NewBoardPosition;
 
-
+                    /*
                     // DEBUG !!!
                     cout << Board.JumpedPegRectNumber << endl;
 
@@ -666,13 +668,10 @@ int main(int argc, char **argv)
                             cout << endl;
                         }
 
-
                         Number++;
                     }
                     cout << endl;
-
-                    // Take the chosen direction (NORTH, SOUTH, EAST or WEST) and run the correct animation.
-                    PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y);
+                    */
 
                     // Reset the destination holes position.
                     for(int HoleNumber = 34; HoleNumber < 38;)
@@ -694,7 +693,7 @@ int main(int argc, char **argv)
                     SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
                     SDL_RenderClear(renderer);
 
-                    // Update RectArray to do animation [2] should be a variable: int SelectPeg (!!!)
+                    // Update RectArray to do animation.
                     RectArray[SpriteInfoPeg.RectNumber] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
 
                     // Render the animation
@@ -706,11 +705,6 @@ int main(int argc, char **argv)
                     // Reset bools
                     IsAnimationActive = false;
                     IsJumpPositionSelected = false;
-
-                    // Stop timing (DEBUG)
-                    time_point<steady_clock> end = steady_clock::now();
-                    duration<double, nano> fp_ns = end - start; 
-                    cout << fp_ns.count() << " ns" << endl;
 
                     // Clear the Stored Animation frames, so a new animation, with a new position can be used.
                     PegJumpAnimationFrames.clear();
@@ -726,6 +720,7 @@ int main(int argc, char **argv)
 
                     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                     SDL_RenderPresent(renderer);
+                    SDL_RenderClear(renderer);
                 }
 
                 GameTick++;
@@ -750,6 +745,7 @@ int main(int argc, char **argv)
 
             RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
             SDL_RenderPresent(renderer);
+            SDL_RenderClear(renderer);
 
             SpriteInfoPeg.IsSelected = false;
             SpriteInfoPeg.RectNumber = -2;
