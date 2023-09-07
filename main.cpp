@@ -415,7 +415,7 @@ int main(int argc, char **argv)
     vector<int> PegRectRange = {2, 38};
 
     // Push Rects to the RectArray
-    RectArray.push_back({90, 90, 90, 90}); // Dummy texture rect
+    RectArray.push_back({-100, -100, 90, 90}); // Dummy texture rect
     RectArray.push_back({0, -80, WIDTH, WIDTH}); // board texture rect
 
     // Setup positions
@@ -509,6 +509,7 @@ int main(int argc, char **argv)
 
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                 SDL_RenderPresent(renderer);
+                SDL_RenderClear(renderer);
             }
         }
 
@@ -616,6 +617,7 @@ int main(int argc, char **argv)
                 // Render selected peg with outline and the possible moves.
                 RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                 SDL_RenderPresent(renderer);
+                SDL_RenderClear(renderer);
             }
             
             // If a JumpPos have been selected then the animation
@@ -718,6 +720,7 @@ int main(int argc, char **argv)
 
                     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                     SDL_RenderPresent(renderer);
+                    SDL_RenderClear(renderer);
                 }
 
                 GameTick++;
@@ -742,6 +745,7 @@ int main(int argc, char **argv)
 
             RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
             SDL_RenderPresent(renderer);
+            SDL_RenderClear(renderer);
 
             SpriteInfoPeg.IsSelected = false;
             SpriteInfoPeg.RectNumber = -2;
