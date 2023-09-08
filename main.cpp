@@ -352,6 +352,8 @@ int main(int argc, char **argv)
     SDL_Window *window;
     SDL_Renderer *renderer; 
 
+    int WIDTH;
+    int HEIGHT;
 
     // initialize SDL window and renderer
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -360,11 +362,20 @@ int main(int argc, char **argv)
     SDL_DisplayMode DisplaySize;
     SDL_GetCurrentDisplayMode(0, &DisplaySize);
 
+    if((DisplaySize.w != 1920) || (DisplaySize.h != 1080))
+    {   
+        const float DisplayConstant = (DisplaySize.w / DisplaySize.h);
+        WIDTH = (1920 / 2) / DisplayConstant;
+        HEIGHT = (1080 / 1.4) / DisplayConstant;
+    }
+    else
+    {
+        WIDTH = DisplaySize.w/2;
+        HEIGHT = DisplaySize.h/1.4;
+    }
+
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
-    int WIDTH = DisplaySize.w/2;
-    int HEIGHT = DisplaySize.h/1.4;
-    // int WIDTH = 1920/2;
-    // int HEIGHT = 1080/1.6;
+ 
     vector<int> ScreenResolution = {WIDTH, HEIGHT};
 
     // Create the SDL window and set its title
