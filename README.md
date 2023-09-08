@@ -7,6 +7,9 @@ The game is won if the player can eliminate all pegs, but the last, which should
 Any peg can be eliminated by selecting a peg and jumping over an adjacent peg and into an empty hole. 
 The adjacent peg will now be removed from the board.
 
-The game is made in C++, using the SDL2 and SDL2_image libraries.
+The game is made in C++, using the SDL2 and SDL2_image libraries. 
+The textures are made using Blender and Paint.net.
 
 As of now, the game only supports windows.
+
+![PegSolitaire](https://github.com/simonsvale/Peg-solitaire/assets/8054877/133d632f-f7ac-47f4-a7f6-f7dbea20b3a5)
