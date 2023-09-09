@@ -267,7 +267,9 @@ vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL
 
     // Convert the Indexed Rect position for the select hole, to cartesian coordinates in the 7x7 grid.
     BoardPosY = floor((TrueBoardIndexPosition+(RelativeHolePosition))/7)+1;
-    BoardPosX = (TrueBoardIndexPosition+(RelativeHolePosition) - (BoardPosY-1)*7+1);
+    BoardPosX = TrueBoardIndexPosition+(RelativeHolePosition) - (BoardPosY-1)*7+1;
+
+    cout << BoardPosX << ", " << BoardPosY << endl;
 
     RectArray[RectIndex] = {PegSetupX[BoardPosX-1], PegSetupY[BoardPosY-1]+55, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
 
@@ -529,6 +531,25 @@ int main(int argc, char **argv)
             if (SDL_QUIT == windowEvent.type)
             {
                 break;
+            }
+
+            // Listen for r press, to reset the game.
+            if ((windowEvent.key.keysym.sym == SDLK_r) && (IsAnimationActive == false) && (SDL_KEYUP == windowEvent.type))
+			{  
+                // Reset board
+                BoardLayout = {-1, -1, 2, 3, 4, -1, -1,
+                               -1, -1, 5, 6, 7, -1, -1,
+                                 8, 9, 10, 11, 12, 13, 14, 
+                                 15, 16, 17, 0, 18, 19, 20, 
+                                 21, 22, 23, 24, 25, 26, 27, 
+                               -1, -1, 28, 29, 30, -1, -1,
+                               -1, -1, 31, 32, 33, -1, -1};
+
+                // Reset peg rect positions
+                int BoardPosY = floor(SpriteInfoPeg.RectNumber/7)+1;
+                int BoardPosX = (SpriteInfoPeg.RectNumber - (BoardPosY-1)*7+1);
+
+
             }
 
             if ((SDL_MOUSEBUTTONDOWN == windowEvent.type) && (IsAnimationActive == false))
