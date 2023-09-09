@@ -227,9 +227,6 @@ PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
                     if(CurrentBoardLayout[CheckEmptyLocations[Count]] == 0)
                     {
                         Moves.East = true;
-
-                        // !!!
-                        cout << ((PegPosition+1) % 7) << ", " << ((PegPosition+2) % 7) << endl;
                     }
                     else
                     {
@@ -261,6 +258,7 @@ PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
     return Moves;
 }
 
+// Function for setting the position of hole textures when a peg have been selected.
 vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL_Rect> RectArray, int TrueBoardIndexPosition, int WIDTH)
 {
     int BoardPosX;
@@ -272,8 +270,6 @@ vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL
     // Convert the Indexed Rect position for the select hole, to cartesian coordinates in the 7x7 grid.
     BoardPosY = floor((TrueBoardIndexPosition+(RelativeHolePosition))/7)+1;
     BoardPosX = TrueBoardIndexPosition+(RelativeHolePosition) - (BoardPosY-1)*7+1;
-
-    cout << BoardPosX << ", " << BoardPosY << endl;
 
     RectArray[RectIndex] = {PegSetupX[BoardPosX-1], PegSetupY[BoardPosY-1]+55, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
 
