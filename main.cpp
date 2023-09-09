@@ -200,6 +200,7 @@ PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
                 {
                     Moves.North = false;
                 }
+
             }
             // South
             else if(Count == 1)
@@ -226,6 +227,9 @@ PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
                     if(CurrentBoardLayout[CheckEmptyLocations[Count]] == 0)
                     {
                         Moves.East = true;
+
+                        // !!!
+                        cout << ((PegPosition+1) % 7) << ", " << ((PegPosition+2) % 7) << endl;
                     }
                     else
                     {
@@ -236,7 +240,7 @@ PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
             // West
             else if(Count == 3)
             {   
-                if( (((PegPosition-1) % 7) != 0) && (((PegPosition-2) % 7) != 0))
+                if( ((PegPosition % 7) != 0) && (((PegPosition-1) % 7) != 0))
                 {
                     // If there is check if there is an empty space beside that peg.
                     if(CurrentBoardLayout[CheckEmptyLocations[Count]] == 0)
