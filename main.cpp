@@ -282,7 +282,7 @@ vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL
 
 // A function for converting the static RectNumber of the textures which does not change when a peg moves,
 // to the actual board position of that peg.
-int GetTextureBoardPosition(int RectNumber, vector<int> BoardLayout)
+int GetRectBoardPosition(int RectNumber, vector<int> BoardLayout)
 {
     // For loop iterating through all positions
     // Note: This can be made more efficient since 14 more positions are not used.
@@ -323,8 +323,6 @@ UpdateBoard UpdateBoardPosition(vector<int> CurrentBoardLayout, int RelativeHole
 // Main function
 int main(int argc, char **argv) 
 {   
-    // LookupTableCalculator(184);
-
     // For determining if the window is minimized or not.
     bool IsWindowActive = true;
 
@@ -340,10 +338,15 @@ int main(int argc, char **argv)
 
     // Bool for determining if the selected peg outline have been rendered.
     bool IsOutlineRendered = false;
+
     vector<int> PreviousRectNumber;
 
-    // Bool for determining if the window is in fullscreen mode
-    bool IsFullscreen = false;
+    // Reset variables
+    int ResetPegValue;
+
+    // variables for conversion from Rect number to cartesian coordinates.
+    int ResetPegPosX;
+    int ResetPegPosY;
 
     // Rects corrosponding to distination hole directions.
     int NORTH = 34;
@@ -550,10 +553,28 @@ int main(int argc, char **argv)
                                -1, -1, 31, 32, 33, -1, -1};
 
                 // Reset peg rect positions
-                int BoardPosY = floor(SpriteInfoPeg.RectNumber/7)+1;
-                int BoardPosX = (SpriteInfoPeg.RectNumber - (BoardPosY-1)*7+1);
+                for(int IndexedResetPeg = 2; IndexedResetPeg < 49;)
+                {      
+                    // Get Rect Number from BoardLayout
+                    ResetPegValue = BoardLayout[IndexedResetPeg];
+                    
+                    // Check if the indexResetPeg is an actual peg position
+                    if((ResetPegValue != -1) && (ResetPegValue != 0))
+                    {   
+                        // Convert IndexedResetPeg to cartesian coordinates
+                        ResetPegPosY = floor(IndexedResetPeg/7)+1;
+                        ResetPegPosX = IndexedResetPeg - (ResetPegPosY-1)*7+1;
 
+                        // Set New Peg Rect Position
+                        RectArray[ResetPegValue] = {PegSetupX[ResetPegPosX-1], PegSetupY[ResetPegPosY-1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
+                    }
+                    IndexedResetPeg++;
+                }
 
+                // Rerender screen
+                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
+                SDL_RenderPresent(renderer);
+                SDL_RenderClear(renderer);
             }
 
             if ((SDL_MOUSEBUTTONDOWN == windowEvent.type) && (IsAnimationActive == false))
@@ -595,25 +616,6 @@ int main(int argc, char **argv)
                     }
                 }
             }
-
-            // handle keyboard input
-            if (SDL_KEYDOWN == windowEvent.type)
-            {   
-                // implementation of switching between fullscreen and windowed mode.
-                if (windowEvent.key.keysym.sym == SDLK_F11)
-                {
-                    if (IsFullscreen == false)
-                    {   
-                        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-                        IsFullscreen = true;
-                    }
-                    else
-                    {
-                        SDL_SetWindowFullscreen(window, 0);
-                        IsFullscreen = false;
-                    }
-                }                
-            }
         }
 
         // Check if a peg have been selected
@@ -624,7 +626,7 @@ int main(int argc, char **argv)
                 IsOutlineRendered = true;
 
                 // Get actual location of peg.
-                TruePegPosition = GetTextureBoardPosition(SpriteInfoPeg.RectNumber, BoardLayout);
+                TruePegPosition = GetRectBoardPosition(SpriteInfoPeg.RectNumber, BoardLayout);
 
                 // Get the possible moves of that peg.
                 SelectedPegMoves = GetPossibleMoves(TruePegPosition, BoardLayout);
