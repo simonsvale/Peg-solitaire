@@ -44,6 +44,13 @@ struct UpdateBoard
     int JumpedPegRectNumber;
 };
 
+struct RectSize
+{
+    int WIDTH;
+    int HEIGHT;
+
+};
+
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
 {      
@@ -259,7 +266,7 @@ PossibleMoves GetPossibleMoves(int PegPosition, vector<int> CurrentBoardLayout)
 }
 
 // Function for setting the position of hole textures when a peg have been selected.
-vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL_Rect> RectArray, int TrueBoardIndexPosition, int WIDTH)
+vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL_Rect> RectArray, int TrueBoardIndexPosition, RectSize Hole, const float ProportionConstant)
 {
     int BoardPosX;
     int BoardPosY;
@@ -271,7 +278,7 @@ vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL
     BoardPosY = floor((TrueBoardIndexPosition+(RelativeHolePosition))/7)+1;
     BoardPosX = TrueBoardIndexPosition+(RelativeHolePosition) - (BoardPosY-1)*7+1;
 
-    RectArray[RectIndex] = {PegSetupX[BoardPosX-1], PegSetupY[BoardPosY-1]+55, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+    RectArray[RectIndex] = {int(PegSetupX[BoardPosX-1] / ProportionConstant), int((PegSetupY[BoardPosY-1]+55) / ProportionConstant), Hole.WIDTH, Hole.HEIGHT};
 
     return RectArray;
 }
@@ -297,6 +304,7 @@ int GetRectBoardPosition(int RectNumber, vector<int> BoardLayout)
     return -1;
 }
 
+// Function for updating the board with new peg positions.
 UpdateBoard UpdateBoardPosition(vector<int> CurrentBoardLayout, int RelativeHolePosition, ClickedSprite SpriteInfoPeg, int TruePegPosition)
 {
     UpdateBoard NewBoardLayout;
@@ -360,6 +368,10 @@ int main(int argc, char **argv)
     int WIDTH;
     int HEIGHT;
 
+    RectSize Peg;
+    RectSize Hole;
+    RectSize BoardSize;
+
     // initialize SDL window and renderer
     SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -367,21 +379,23 @@ int main(int argc, char **argv)
     SDL_DisplayMode DisplaySize;
     SDL_GetCurrentDisplayMode(0, &DisplaySize);
 
-    if((DisplaySize.w != 1920) || (DisplaySize.h != 1080))
-    {   
-        const float DisplayConstant = (DisplaySize.w / DisplaySize.h);
-        WIDTH = (1920 / 2) / DisplayConstant;
-        HEIGHT = (1080 / 1.4) / DisplayConstant;
-    }
-    else
-    {
-        WIDTH = DisplaySize.w/2;
-        HEIGHT = DisplaySize.h/1.4;
-    }
-
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
- 
-    vector<int> ScreenResolution = {WIDTH, HEIGHT};
+    float DisplayConstant = (float(DisplaySize.w) / float(DisplaySize.h)*1.4);
+
+    WIDTH = (1920.0 / 1) / DisplayConstant;
+
+    HEIGHT = (1080.0 / 0.7) / DisplayConstant;
+
+    Peg.WIDTH = int(WIDTH / 22.1);
+    Peg.HEIGHT = int(WIDTH / 22.1 * 2.07);
+
+    Hole.WIDTH = int(WIDTH / 22.1);
+    Hole.HEIGHT = int(((WIDTH * 1.1) / 22.1) / 1.25);
+
+    BoardSize.WIDTH = int(WIDTH);
+
+
+    const float ProportionConstant = WIDTH/621.0;
 
     // Create the SDL window and set its title
     SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI, &window, &renderer);
@@ -432,18 +446,18 @@ int main(int argc, char **argv)
 
     // Push Rects to the RectArray
     RectArray.push_back({-100, -100, 90, 90}); // Dummy texture rect
-    RectArray.push_back({0, -80, WIDTH, WIDTH}); // board texture rect
+    RectArray.push_back({0, int(-80 / ProportionConstant), BoardSize.WIDTH, BoardSize.WIDTH}); // board texture rect
 
     // Setup positions
     vector<int> PegSetupX = {73, 202, 330, 458, 587, 715, 843};
     vector<int> PegSetupY = {4, 94, 184, 278, 371, 461, 551};
 
-    // Create the board of 7x7 pegs.
+    // Create the board of 7x7 pegs
     for(int PegPosY = 0; PegPosY < 7;)
     {
         for(int PegPosX = 0; PegPosX < 7;)
         {
-            RectArray.push_back({PegSetupX[PegPosX], PegSetupY[PegPosY], int(WIDTH/22.1), int(WIDTH/22.1*2.07)});
+            RectArray.push_back({int(PegSetupX[PegPosX] / ProportionConstant), int(PegSetupY[PegPosY] / ProportionConstant), Peg.WIDTH, Peg.HEIGHT});
 
             PegPosX++;
         }
@@ -467,7 +481,7 @@ int main(int argc, char **argv)
     // Create the 4 possible holes to select
     for(int RectCount = 0; RectCount < 4;)
     {
-        RectArray.push_back({-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)});
+        RectArray.push_back({-100, -100, Hole.WIDTH, Hole.HEIGHT});
         RectCount++;
     }
 
@@ -562,7 +576,7 @@ int main(int argc, char **argv)
                         ResetPegPosX = IndexedResetPeg - (ResetPegPosY-1)*7+1;
 
                         // Set New Peg Rect Position
-                        RectArray[ResetPegValue] = {PegSetupX[ResetPegPosX-1], PegSetupY[ResetPegPosY-1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
+                        RectArray[ResetPegValue] = {int(PegSetupX[ResetPegPosX-1] / ProportionConstant), int(PegSetupY[ResetPegPosY-1] / ProportionConstant), Peg.WIDTH, Peg.HEIGHT};
                     }
                     IndexedResetPeg++;
                 }
@@ -599,10 +613,10 @@ int main(int argc, char **argv)
                     // Reset selection holes position if a hole have not been selected
                     if(SpriteInfo.RectNumber < 34)
                     {
-                        for(int Hole = 34; Hole < 38;)
+                        for(int HoleNumber = 34; HoleNumber < 38;)
                         {
-                            RectArray[Hole] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
-                            Hole++;
+                            RectArray[HoleNumber] = {-100, -100, Hole.WIDTH, Hole.HEIGHT};
+                            HoleNumber++;
                         }
                     }
                     else
@@ -630,22 +644,22 @@ int main(int argc, char **argv)
                 // Set the HoleSelect texture position
                 if(SelectedPegMoves.North == true)
                 {   
-                    RectArray = SetHoleRect(-14, 34, RectArray, TruePegPosition, WIDTH);
+                    RectArray = SetHoleRect(-14, 34, RectArray, TruePegPosition, Hole, ProportionConstant);
                 }
 
                 if(SelectedPegMoves.South == true)
                 {
-                    RectArray = SetHoleRect(14, 35, RectArray, TruePegPosition, WIDTH);
+                    RectArray = SetHoleRect(14, 35, RectArray, TruePegPosition, Hole, ProportionConstant);
                 }
 
                 if(SelectedPegMoves.East == true)
                 {
-                    RectArray = SetHoleRect(2, 36, RectArray, TruePegPosition, WIDTH);
+                    RectArray = SetHoleRect(2, 36, RectArray, TruePegPosition, Hole, ProportionConstant);
                 }
 
                 if(SelectedPegMoves.West == true)
                 {
-                    RectArray = SetHoleRect(-2, 37, RectArray, TruePegPosition, WIDTH);
+                    RectArray = SetHoleRect(-2, 37, RectArray, TruePegPosition, Hole, ProportionConstant);
                 }
                 
                 // Render selected peg with outline and the possible moves.
@@ -684,33 +698,15 @@ int main(int argc, char **argv)
                     }
 
                     // Take the chosen direction SpriteInfo.RectNumber, which is NORTH, SOUTH, EAST or WEST, and run the correct animation.
-                    PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y, SpriteInfo.RectNumber, TruePegPosition);
+                    PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y, SpriteInfo.RectNumber, TruePegPosition, ProportionConstant);
 
                     // Update board layout
                     BoardLayout = Board.NewBoardPosition;
 
-                    /*
-                    // DEBUG !!!
-                    cout << Board.JumpedPegRectNumber << endl;
-
-                    for(int Number = 1; Number < BoardLayout.size();)
-                    {
-                        cout << BoardLayout[Number-1] << ", ";
-
-                        if((Number % 7) == 0)
-                        {
-                            cout << endl;
-                        }
-
-                        Number++;
-                    }
-                    cout << endl;
-                    */
-
                     // Reset the destination holes position.
                     for(int HoleNumber = 34; HoleNumber < 38;)
                     {   
-                        RectArray[HoleNumber] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+                        RectArray[HoleNumber] = {-100, -100, Hole.WIDTH, Hole.HEIGHT};
 
                         HoleNumber++;
                     }
@@ -728,7 +724,7 @@ int main(int argc, char **argv)
                     SDL_RenderClear(renderer);
 
                     // Update RectArray to do animation.
-                    RectArray[SpriteInfoPeg.RectNumber] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], int(WIDTH/22.1), int(WIDTH/22.1*2.07)};
+                    RectArray[SpriteInfoPeg.RectNumber] = {PegJumpAnimationFrames[GameTick][0], PegJumpAnimationFrames[GameTick][1], Peg.WIDTH, Peg.HEIGHT};
 
                     // Render the animation
                     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
@@ -750,7 +746,7 @@ int main(int argc, char **argv)
                     SpriteInfo.RectNumber = -2;
 
                     // Remove jumped peg (Could also have an animation, perhaps like when the cards bounce in normal solitaire)
-                    RectArray[Board.JumpedPegRectNumber] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
+                    RectArray[Board.JumpedPegRectNumber] = {-100, -100, Peg.WIDTH, Peg.HEIGHT};
 
                     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
                     SDL_RenderPresent(renderer);
@@ -771,10 +767,10 @@ int main(int argc, char **argv)
             }
             
             // Reset selection holes position
-            for(int Hole = 34; Hole < 38;)
+            for(int HoleNumber = 34; HoleNumber < 38;)
             {
-                RectArray[Hole] = {-100, -100, int(WIDTH/22.1), int(WIDTH/22.1/1.25)};
-                Hole++;
+                RectArray[HoleNumber] = {-100, -100, Hole.WIDTH, Hole.HEIGHT};
+                HoleNumber++;
             }
 
             RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
