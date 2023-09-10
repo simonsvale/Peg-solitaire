@@ -379,12 +379,15 @@ int main(int argc, char **argv)
     SDL_DisplayMode DisplaySize;
     SDL_GetCurrentDisplayMode(0, &DisplaySize);
 
+    // DEBUG
+    DisplaySize.w = 1680;
+
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
-    float DisplayConstant = (float(DisplaySize.w) / float(DisplaySize.h)*1.4);
+    float DisplayConstant = (float(DisplaySize.w) / float(DisplaySize.w / (float(DisplaySize.w) / float(DisplaySize.h)))*1.4);
 
-    WIDTH = (1920.0 / 1) / DisplayConstant;
+    WIDTH = (DisplaySize.w / DisplayConstant)*(DisplaySize.w/1920.0); 
 
-    HEIGHT = (1080.0 / 0.7) / DisplayConstant;
+    HEIGHT = ((((DisplaySize.w / 16.0) * 9.0) / 0.7) / DisplayConstant)*(DisplaySize.w/1920.0);
 
     Peg.WIDTH = int(WIDTH / 22.1);
     Peg.HEIGHT = int(WIDTH / 22.1 * 2.07);
@@ -394,8 +397,10 @@ int main(int argc, char **argv)
 
     BoardSize.WIDTH = int(WIDTH);
 
+    cout << HEIGHT << endl;
 
-    const float ProportionConstant = WIDTH/621.0;
+
+    const float ProportionConstant = WIDTH/float(HEIGHT);
 
     // Create the SDL window and set its title
     SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI, &window, &renderer);
