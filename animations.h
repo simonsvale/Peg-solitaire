@@ -8,7 +8,7 @@
 using namespace std;
 
 // Function utilizing a lookup table to limit calculations using squareroot.
-vector<vector<int> > PegJumpAnimation(int PosX, int PosY, int Direction, int TruePegPosition, float ProportionConstant)
+vector<vector<int> > PegJumpAnimation(int PosX, int PosY, int Direction, int TruePegPosition, int DisplaySizeW)
 {
     vector<vector<int> > ReturnVector;
     vector<vector<int> > Coords;
@@ -290,8 +290,8 @@ vector<vector<int> > PegJumpAnimation(int PosX, int PosY, int Direction, int Tru
         vector<int> Vector;
 
         // Push the values into the the vector that will be returned
-        Vector.push_back((Coords[XValue][0] / ProportionConstant) + PosX);
-        Vector.push_back((Coords[XValue][1] / ProportionConstant) + PosY);
+        Vector.push_back(DisplaySizeW / (1920.0 / Coords[XValue][0]) + PosX);
+        Vector.push_back(DisplaySizeW / (1920.0 / Coords[XValue][1]) + PosY);
 
         ReturnVector.push_back(Vector);
 
