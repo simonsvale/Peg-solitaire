@@ -51,6 +51,19 @@ struct RectSize
 
 };
 
+struct UndoMoveInfo
+{
+    int PegRect;
+    int RemovedPegRect;
+    int MoveDirection;
+};
+
+struct UndoReturnInfo
+{
+    vector<int> BoardLayout;
+    vector<SDL_Rect> RectArr;
+};
+
 // Function for deleting SDL textures and freeing surfaces
 void Delete(SDL_Texture *TextureArr[], SDL_Surface *SurfaceArr[])
 {      
@@ -321,6 +334,132 @@ UpdateBoard UpdateBoardPosition(vector<int> CurrentBoardLayout, int RelativeHole
 }   
 
 
+// Convert index number in 7x7 grid to cartesian coordiantes
+vector<int> IndexToCartesian(int Position)
+{
+    vector<int> Coords;
+
+    int Y= floor(Position/7)+1;
+    int X = Position - (Y-1)*7+1;
+
+    Coords.push_back(X);
+    Coords.push_back(Y);
+
+    return Coords;
+}
+
+
+// Function for undoing moves.
+UndoReturnInfo UndoPegMove(vector<int> CurrentBoardLayout, UndoMoveInfo PegMove, vector<SDL_Rect> RectArr, vector<int> PegSetupX, vector<int> PegSetupY, RectSize Peg)
+{
+    // setup return rect
+    UndoReturnInfo ReturnStruct;
+
+    // Get the true position of the peg.
+    int TruePegPos = GetRectBoardPosition(PegMove.PegRect, CurrentBoardLayout);
+    int TrueRemovedPegPos = TruePegPos;
+
+    if(PegMove.MoveDirection == 0)
+    {   
+        CurrentBoardLayout[TruePegPos+14] = PegMove.PegRect;
+        CurrentBoardLayout[TruePegPos+7] = PegMove.RemovedPegRect;
+        CurrentBoardLayout[TruePegPos] = 0;
+
+        TrueRemovedPegPos += 7;
+        TruePegPos += 14;
+
+        // Set peg's rect to the previous position and add back the removed peg.
+        vector<int> TruePegCoords = IndexToCartesian(TruePegPos);
+        vector<int> TrueRemovedPegCoords = IndexToCartesian(TrueRemovedPegPos);
+        
+        // Update Rects to old positions
+        RectArr[PegMove.RemovedPegRect] = {int(PegSetupX[TrueRemovedPegCoords[0]-1]), int(PegSetupY[TrueRemovedPegCoords[1]-1]), Peg.WIDTH, Peg.HEIGHT};
+        RectArr[PegMove.PegRect] = {int(PegSetupX[TruePegCoords[0]-1]), int(PegSetupY[TruePegCoords[1]-1]), Peg.WIDTH, Peg.HEIGHT};
+  
+        // Set new Boardlayout
+        ReturnStruct.BoardLayout = CurrentBoardLayout;
+        ReturnStruct.RectArr = RectArr;
+
+        return ReturnStruct;
+    }
+
+    if(PegMove.MoveDirection == 1)
+    {   
+        CurrentBoardLayout[TruePegPos-14] = PegMove.PegRect;
+        CurrentBoardLayout[TruePegPos-7] = PegMove.RemovedPegRect;
+        CurrentBoardLayout[TruePegPos] = 0;
+
+        TrueRemovedPegPos -= 7;
+        TruePegPos -= 14;
+
+        // Set peg's rect to the previous position and add back the removed peg.
+        vector<int> TruePegCoords = IndexToCartesian(TruePegPos);
+        vector<int> TrueRemovedPegCoords = IndexToCartesian(TrueRemovedPegPos);
+
+        // Update Rects to old positions
+        RectArr[PegMove.RemovedPegRect] = {int(PegSetupX[TrueRemovedPegCoords[0]-1]), int(PegSetupY[TrueRemovedPegCoords[1]-1]), Peg.WIDTH, Peg.HEIGHT};
+        RectArr[PegMove.PegRect] = {int(PegSetupX[TruePegCoords[0]-1]), int(PegSetupY[TruePegCoords[1]-1]), Peg.WIDTH, Peg.HEIGHT};
+
+        // Set new Boardlayout
+        ReturnStruct.BoardLayout = CurrentBoardLayout;
+        ReturnStruct.RectArr = RectArr;
+
+        return ReturnStruct;
+    }
+
+    if(PegMove.MoveDirection == 2)
+    {
+        CurrentBoardLayout[TruePegPos-2] = PegMove.PegRect;
+        CurrentBoardLayout[TruePegPos-1] = PegMove.RemovedPegRect;
+        CurrentBoardLayout[TruePegPos] = 0;
+
+        TrueRemovedPegPos -= 1;
+        TruePegPos -= 2;
+
+        // Set peg's rect to the previous position and add back the removed peg.
+        vector<int> TruePegCoords = IndexToCartesian(TruePegPos);
+        vector<int> TrueRemovedPegCoords = IndexToCartesian(TrueRemovedPegPos);
+
+        // Update Rects to old positions
+        RectArr[PegMove.RemovedPegRect] = {int(PegSetupX[TrueRemovedPegCoords[0]-1]), int(PegSetupY[TrueRemovedPegCoords[1]-1]), Peg.WIDTH, Peg.HEIGHT};
+        RectArr[PegMove.PegRect] = {int(PegSetupX[TruePegCoords[0]-1]), int(PegSetupY[TruePegCoords[1]-1]), Peg.WIDTH, Peg.HEIGHT};
+        
+        // Set new Boardlayout
+        ReturnStruct.BoardLayout = CurrentBoardLayout;
+        ReturnStruct.RectArr = RectArr;
+
+        return ReturnStruct;
+    }
+
+    if(PegMove.MoveDirection == 3)
+    {
+        CurrentBoardLayout[TruePegPos+2] = PegMove.PegRect;
+        CurrentBoardLayout[TruePegPos+1] = PegMove.RemovedPegRect;
+        CurrentBoardLayout[TruePegPos] = 0;
+
+        TrueRemovedPegPos += 1;
+        TruePegPos += 2;
+
+        // Set peg's rect to the previous position and add back the removed peg.
+        vector<int> TruePegCoords = IndexToCartesian(TruePegPos);
+        vector<int> TrueRemovedPegCoords = IndexToCartesian(TrueRemovedPegPos);
+
+        // Update Rects to old positions
+        RectArr[PegMove.RemovedPegRect] = {int(PegSetupX[TrueRemovedPegCoords[0]-1]), int(PegSetupY[TrueRemovedPegCoords[1]-1]), Peg.WIDTH, Peg.HEIGHT};
+        RectArr[PegMove.PegRect] = {int(PegSetupX[TruePegCoords[0]-1]), int(PegSetupY[TruePegCoords[1]-1]), Peg.WIDTH, Peg.HEIGHT};
+        
+        // Set new Boardlayout
+        ReturnStruct.BoardLayout = CurrentBoardLayout;
+        ReturnStruct.RectArr = RectArr;
+
+        return ReturnStruct;
+    }
+
+    // just return the original board if no moves where made.
+    return ReturnStruct;
+}
+
+
 // Main function
 int main(int argc, char **argv) 
 {   
@@ -341,6 +480,12 @@ int main(int argc, char **argv)
     bool IsOutlineRendered = false;
 
     vector<int> PreviousRectNumber;
+    
+    UndoMoveInfo UndoStruct;
+    vector<UndoMoveInfo> UndoVector;
+
+
+    UndoReturnInfo Undo;
 
     // Reset variables
     int ResetPegValue;
@@ -375,9 +520,6 @@ int main(int argc, char **argv)
     // Throws an error in the VS IDE, but somehow it still works...
     SDL_DisplayMode DisplaySize;
     SDL_GetCurrentDisplayMode(0, &DisplaySize);
-
-    // Since the native size is 1920x1080 make the screen a bit smaller.
-    DisplaySize.w = DisplaySize.w/1.4;
 
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
     WIDTH = DisplaySize.w/2;
@@ -548,40 +690,65 @@ int main(int argc, char **argv)
             }
 
             // Listen for r press, to reset the game.
-            if ((windowEvent.key.keysym.sym == SDLK_r) && (IsAnimationActive == false) && (SDL_KEYUP == windowEvent.type))
-			{  
-                // Reset board
-                BoardLayout = {-1, -1, 2, 3, 4, -1, -1,
-                               -1, -1, 5, 6, 7, -1, -1,
-                                 8, 9, 10, 11, 12, 13, 14, 
-                                 15, 16, 17, 0, 18, 19, 20, 
-                                 21, 22, 23, 24, 25, 26, 27, 
-                               -1, -1, 28, 29, 30, -1, -1,
-                               -1, -1, 31, 32, 33, -1, -1};
+            if ((IsAnimationActive == false) && (SDL_KEYUP == windowEvent.type))
+			{   
+                if(windowEvent.key.keysym.sym == SDLK_r)
+                {
+                    // Reset board
+                    BoardLayout = {-1, -1, 2, 3, 4, -1, -1,
+                                -1, -1, 5, 6, 7, -1, -1,
+                                    8, 9, 10, 11, 12, 13, 14, 
+                                    15, 16, 17, 0, 18, 19, 20, 
+                                    21, 22, 23, 24, 25, 26, 27, 
+                                -1, -1, 28, 29, 30, -1, -1,
+                                -1, -1, 31, 32, 33, -1, -1};
 
-                // Reset peg rect positions
-                for(int IndexedResetPeg = 2; IndexedResetPeg < 49;)
-                {      
-                    // Get Rect Number from BoardLayout
-                    ResetPegValue = BoardLayout[IndexedResetPeg];
-                    
-                    // Check if the indexResetPeg is an actual peg position
-                    if((ResetPegValue != -1) && (ResetPegValue != 0))
-                    {   
-                        // Convert IndexedResetPeg to cartesian coordinates
-                        ResetPegPosY = floor(IndexedResetPeg/7)+1;
-                        ResetPegPosX = IndexedResetPeg - (ResetPegPosY-1)*7+1;
+                    // Reset peg rect positions
+                    for(int IndexedResetPeg = 2; IndexedResetPeg < 49;)
+                    {      
+                        // Get Rect Number from BoardLayout
+                        ResetPegValue = BoardLayout[IndexedResetPeg];
+                        
+                        // Check if the indexResetPeg is an actual peg position
+                        if((ResetPegValue != -1) && (ResetPegValue != 0))
+                        {   
+                            // Convert IndexedResetPeg to cartesian coordinates
+                            ResetPegPosY = floor(IndexedResetPeg/7)+1;
+                            ResetPegPosX = IndexedResetPeg - (ResetPegPosY-1)*7+1;
 
-                        // Set New Peg Rect Position
-                        RectArray[ResetPegValue] = {PegSetupX[ResetPegPosX-1], PegSetupY[ResetPegPosY-1], Peg.WIDTH, Peg.HEIGHT};
+                            // Set New Peg Rect Position
+                            RectArray[ResetPegValue] = {PegSetupX[ResetPegPosX-1], PegSetupY[ResetPegPosY-1], Peg.WIDTH, Peg.HEIGHT};
+                        }
+                        IndexedResetPeg++;
                     }
-                    IndexedResetPeg++;
+
+                    // Rerender screen
+                    RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
+                    SDL_RenderPresent(renderer);
+                    SDL_RenderClear(renderer);
                 }
 
-                // Rerender screen
-                RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
-                SDL_RenderPresent(renderer);
-                SDL_RenderClear(renderer);
+                // Check for z
+                if(windowEvent.key.keysym.sym == SDLK_z)
+                {   
+                    if(UndoVector.size() > 0)
+                    {
+                        // Undo last move
+                        Undo = UndoPegMove(BoardLayout, UndoVector.back(), RectArray, PegSetupX, PegSetupY, Peg);
+
+                        BoardLayout = Undo.BoardLayout;
+                        RectArray = Undo.RectArr;
+
+                        // Pop the last undo off the vector
+                        UndoVector.pop_back();
+
+                        // Render selected peg with outline and the possible moves.
+                        RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
+                        SDL_RenderPresent(renderer);
+                        SDL_RenderClear(renderer);
+                    }
+                }
+
             }
 
             if ((SDL_MOUSEBUTTONDOWN == windowEvent.type) && (IsAnimationActive == false))
@@ -677,23 +844,33 @@ int main(int argc, char **argv)
                     if(SpriteInfo.RectNumber == NORTH)
                     {
                         Board = UpdateBoardPosition(BoardLayout, -14, SpriteInfoPeg, TruePegPosition);
+                        UndoStruct.RemovedPegRect = BoardLayout[TruePegPosition-7];
+                        UndoStruct.MoveDirection = 0;
                     }
 
                     if(SpriteInfo.RectNumber == SOUTH)
                     {
                         Board = UpdateBoardPosition(BoardLayout, 14, SpriteInfoPeg, TruePegPosition);
+                        UndoStruct.RemovedPegRect = BoardLayout[TruePegPosition+7];
+                        UndoStruct.MoveDirection = 1;
                     }
 
                     if(SpriteInfo.RectNumber == EAST)
                     {
                         Board = UpdateBoardPosition(BoardLayout, 2, SpriteInfoPeg, TruePegPosition);
+                        UndoStruct.RemovedPegRect = BoardLayout[TruePegPosition+1];
+                        UndoStruct.MoveDirection = 2;
                     }
 
                     if(SpriteInfo.RectNumber == WEST)
                     {
                         Board = UpdateBoardPosition(BoardLayout, -2, SpriteInfoPeg, TruePegPosition);
+                        UndoStruct.RemovedPegRect = BoardLayout[TruePegPosition-1];
+                        UndoStruct.MoveDirection = 3;
                     }
 
+                    UndoStruct.PegRect = SpriteInfoPeg.RectNumber;
+                    
                     // Take the chosen direction SpriteInfo.RectNumber, which is NORTH, SOUTH, EAST or WEST, and run the correct animation.
                     PegJumpAnimationFrames = PegJumpAnimation(RectArray[SpriteInfoPeg.RectNumber].x, RectArray[SpriteInfoPeg.RectNumber].y, SpriteInfo.RectNumber, TruePegPosition, DisplaySize.w);
 
@@ -707,6 +884,9 @@ int main(int argc, char **argv)
 
                         HoleNumber++;
                     }
+
+                    // Push UndoStruct onto vector to be able to undo move.
+                    UndoVector.push_back(UndoStruct);
 
                     // Rerender the screen with the holes new position set in the top left.
                     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
