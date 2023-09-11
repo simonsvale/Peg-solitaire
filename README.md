@@ -16,5 +16,5 @@ As of now, the game only supports windows.
 
 Controls:
 
-r = reset
-z = undo previous move
+r = reset  
+z = undo move
