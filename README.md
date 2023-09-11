@@ -13,3 +13,8 @@ The textures are made using Blender and Paint.net.
 As of now, the game only supports windows.
 
 ![PegSolitaire](https://github.com/simonsvale/Peg-solitaire/assets/8054877/133d632f-f7ac-47f4-a7f6-f7dbea20b3a5)
+
+Controls:
+
+r = reset  
+z = undo move
