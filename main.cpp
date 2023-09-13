@@ -1,5 +1,5 @@
 // Compilation settings
-// g++ -I src/include -L src/lib -o main main.cpp -static-lmingw32 -static-lSDL2main -static-lSDL2 -static-lSDL2_image -mwindows
+// g++ -I src/include -L src/lib -o main main.cpp -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -mwindows
 
 // Include necessary built-in header files
 #include <iostream>
