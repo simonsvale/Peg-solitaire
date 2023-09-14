@@ -111,7 +111,7 @@ void RenderEverything(SDL_Renderer *renderer, SDL_Texture *TextureArr[], vector<
             FromPosArraySum = 0;
 
             // Calculate the FromPosArraySum, used to determine the position of the correct Rect in the RectArray
-            for(; FromPos < TextureAmountArr.size();)
+            for(; FromPos < int(TextureAmountArr.size());)
             {   
                 FromPosArraySum += TextureAmountArr[FromPos];
                 FromPos++;
@@ -285,7 +285,7 @@ vector<SDL_Rect> SetHoleRect(int RelativeHolePosition, int RectIndex, vector<SDL
     int BoardPosY;
 
     // Convert the Indexed Rect position for the select hole, to cartesian coordinates in the 7x7 grid.
-    BoardPosY = floor((TrueBoardIndexPosition+(RelativeHolePosition))/7)+1;
+    BoardPosY = floor((TrueBoardIndexPosition + (RelativeHolePosition))/7)+1;
     BoardPosX = TrueBoardIndexPosition+(RelativeHolePosition) - (BoardPosY-1)*7+1;
 
     RectArray[RectIndex] = {PegSetupX[BoardPosX-1], (PegSetupY[BoardPosY-1]+(DisplaySizeW / (1920/55))), Hole.WIDTH, Hole.HEIGHT};
@@ -508,7 +508,6 @@ int main(int argc, char **argv)
     SDL_Renderer *renderer; 
 
     int WIDTH;
-    int HEIGHT;
 
     RectSize Peg;
     RectSize Hole;
@@ -523,7 +522,6 @@ int main(int argc, char **argv)
 
     // Use the width and height of the screen to make the window compatible with all screen resolutions.
     WIDTH = DisplaySize.w/2;
-    HEIGHT = DisplaySize.h/1.4;
 
     Peg.WIDTH = int(WIDTH / 22.1);
     Peg.HEIGHT = int(WIDTH / 22.1 * 2.07);
@@ -572,7 +570,7 @@ int main(int argc, char **argv)
     // Struct for storing possible moves when selecting a peg. 
     //                               North, South, East,  West
     PossibleMoves SelectedPegMoves;
-    int TruePegPosition;
+    int TruePegPosition = -1;
 
     // Vector for storing Rects.
     vector<SDL_Rect> RectArray;
@@ -630,7 +628,7 @@ int main(int argc, char **argv)
     // Calculate the total amount of all textures in the TextureAmountArray.
     int ArraySum = 0;
 
-    for(int ArrayIndex = 0; ArrayIndex < TextureAmountArray.size();)
+    for(int ArrayIndex = 0; ArrayIndex < int(TextureAmountArray.size());)
     {
         ArraySum += TextureAmountArray[ArrayIndex];
         ArrayIndex++;
@@ -655,9 +653,23 @@ int main(int argc, char **argv)
     RenderEverything(renderer, TextureArray, RectArray, TextureAmountArray, SpriteInfo, ArraySum);
     SDL_RenderPresent(renderer);
 
+    // Variable for ending while loop.
+    bool Running = true;
+
+    // Variables for limiting fps.
+    int FrameTimeTotal;
+    Uint64 FrameTimeStart;
+    Uint64 FrameTimeEnd;
+
+    const int FrameDelay = 1000 / 60;
+
+
     // Main loop
-    while (true)
+    while (Running == true)
     {
+        // Get the time of the frame start
+        FrameTimeStart = SDL_GetTicks();
+
         // Get mouse postion and window flag
         SDL_GetMouseState(&MousePos.x, &MousePos.y);
         int WindowFlag = SDL_GetWindowFlags(window);
@@ -682,15 +694,16 @@ int main(int argc, char **argv)
             }
         }
 
-        if (SDL_PollEvent(&windowEvent))
+        while(SDL_PollEvent(&windowEvent) != 0)
         {
-            if (SDL_QUIT == windowEvent.type)
+            if(SDL_QUIT == windowEvent.type)
             {
-                break;
+                cout << "CLOSED" << endl;
+                Running = false;
             }
 
             // Listen for r press, to reset the game.
-            if ((IsAnimationActive == false) && (SDL_KEYUP == windowEvent.type))
+            if((IsAnimationActive == false) && (SDL_KEYUP == windowEvent.type))
 			{   
                 if(windowEvent.key.keysym.sym == SDLK_r)
                 {
@@ -894,7 +907,7 @@ int main(int argc, char **argv)
                 }
 
                 // Run through the frames of the animation
-                if(GameTick < PegJumpAnimationFrames.size())
+                if(GameTick < int(PegJumpAnimationFrames.size()))
                 {   
                     // Rerender the background, so the top most pegs don't get "burned in" on the screen.
                     SDL_SetRenderDrawColor(renderer, 30, 50, 100, 255);
@@ -930,7 +943,8 @@ int main(int argc, char **argv)
                     SDL_RenderClear(renderer);
                 }
 
-                GameTick++;
+               // GameTick++;
+               GameTick += 1;
             }
         }
 
@@ -967,6 +981,18 @@ int main(int argc, char **argv)
         if(IsAnimationActive == false)
         {
             GameTick = 0;
+        }
+
+        // Get the end time of the frame
+        FrameTimeEnd = SDL_GetTicks();
+
+        // Calculate the amount of time it took to run through 1 frame.
+        FrameTimeTotal = FrameTimeEnd- FrameTimeStart;
+
+        // Set the delay accordingly
+        if(FrameDelay > FrameTimeTotal)
+        {
+            SDL_Delay(FrameDelay - FrameTimeTotal);
         }
     }
 
