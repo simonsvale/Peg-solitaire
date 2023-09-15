@@ -716,6 +716,9 @@ int main(int argc, char **argv)
                                 -1, -1, 28, 29, 30, -1, -1,
                                 -1, -1, 31, 32, 33, -1, -1};
 
+                    // Clear undo vector to prevent issues with undoing a reset board.
+                    UndoVector.clear();
+
                     // Reset peg rect positions
                     for(int IndexedResetPeg = 2; IndexedResetPeg < 49;)
                     {      
